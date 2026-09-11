@@ -1,0 +1,33 @@
+menu "Plant Module Configuration"
+
+    config PLANT_UART_RX_TASK_STACK_SIZE
+        int "UART RX stack size"
+        range 1024 16384
+        default 3072
+        help
+            Defines stack size for UART task.
+
+    config PLANT_UART_RX_TASK_PRIORITY
+        int "UART RX task priority"
+        range 1 10
+        default 10
+        help
+            Defines task priority for the data reception UART task. 
+            Should be of higher priority than the main PLANT task.
+
+    config PLANT_UART_PROCESS_STACK_SIZE
+        int "Plant module task stack size"
+        range 1024 16384
+        default 4096
+        help
+            Defines stack size for the plant module task.
+
+    config PLANT_UART_PROCESS_TASK_PRIORITY
+        int "Plant module task priority"
+        range 1 10
+        default 9
+        help
+            Defines task priority for the plant module task.
+    
+
+endmenu

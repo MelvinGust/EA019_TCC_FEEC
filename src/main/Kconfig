@@ -1,0 +1,53 @@
+menu "Main Configuration"
+
+    config PLANT_MODULE_ENABLE
+        bool "Enable Plant Module | Disable Controller Module"
+        default y
+        help
+            Enable the Plant module, which simulates the plant dynamics and communicates with the controller via UART.
+            If disabled, the controller module will be included in the build.
+    
+    config UART_PORT_NUM
+        int "UART port number"
+        range 0 2
+        default 2
+        help
+            UART communication port number used for communication with the controller.
+            By default, logging is done on UART0, whilst UART1 is reserved for SPI interfacing.
+
+    config UART_BAUD_RATE
+        int "UART communication speed"
+        range 1200 115200
+        default 115200
+        help
+            UART communication speed.
+
+    config UART_RXD_PIN
+        int "UART RXD pin number"
+        range 0 30
+        default 16
+        help
+            GPIO number for UART RX pin.
+
+    config UART_TXD_PIN
+        int "UART TXD pin number"
+        range 0 30
+        default 17
+        help
+            GPIO number for UART TX pin.
+
+    config UART_BUF_SIZE
+        int "UART buffer size"
+        range 128 4096
+        default 1024
+        help
+            Defines buffer size for UART.
+
+    config UART_EVENT_QUEUE_SIZE
+        int "UART event queue size"
+        range 1 40
+        default 20
+        help
+            Defines the size of the UART event queue.
+
+endmenu
