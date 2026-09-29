@@ -48,7 +48,7 @@ const float y_ob = 0.04;
 const float u_m = 0.15;
 const float u_b = 0.2;
 const float u_o = 0.12;
-const float D_m = 1.0;
+const float D_m = 0.01;
 const float c_m = 0.0;
 const float c_b = 0.0;
 const float c_o = 1.0;
@@ -103,7 +103,6 @@ esp_err_t plant_init(void)
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
     /* Local data initialization */
-    ESP_LOGI(TAG, "INIT 1");
 
     // Initialize buffer
     local_data.rx_len = 0;
@@ -123,18 +122,8 @@ esp_err_t plant_init(void)
         ESP_LOGE(TAG, "Failed to initialize UART");
         return ret_code;
     }
-    
-    ESP_LOGI(TAG, "INIT 2");
 
     /* Task Initialization */
-    // Create the UART event task, which will create events based on the UARTs FIFO interrupt, and notify the process task.
-    ret_code = xTaskCreate(uart_rx_task, "uart_event_task", CONFIG_PLANT_UART_RX_TASK_STACK_SIZE, NULL, CONFIG_PLANT_UART_RX_TASK_PRIORITY, NULL);
-    if (ret_code != pdPASS) {
-        ESP_LOGE(TAG, "Failed to create UART RX task");
-        return ESP_FAIL;
-    }
-
-    ESP_LOGI(TAG, "INIT 3");
 
     // Create the MAIN task, which will receive data from the UART, process it, and send the response back to the controller.
     ret_code = xTaskCreate(uart_process_task, "uart_process_task", CONFIG_PLANT_UART_PROCESS_STACK_SIZE, NULL, CONFIG_PLANT_UART_PROCESS_TASK_PRIORITY, NULL);
@@ -143,7 +132,12 @@ esp_err_t plant_init(void)
         return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "INIT 4");
+    // Create the UART event task, which will create events based on the UARTs FIFO interrupt, and notify the process task.
+    ret_code = xTaskCreate(uart_rx_task, "uart_rx_task", CONFIG_PLANT_UART_RX_TASK_STACK_SIZE, NULL, CONFIG_PLANT_UART_RX_TASK_PRIORITY, NULL);
+    if (ret_code != pdPASS) {
+        ESP_LOGE(TAG, "Failed to create UART RX task");
+        return ESP_FAIL;
+    }
 
     ESP_LOGI(TAG, "Plant Module init!");
     return esp_err;
@@ -180,7 +174,6 @@ static esp_err_t uart_init(void)
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .source_clk = UART_SCLK_DEFAULT
     };
-    uart_param_config(CONFIG_UART_PORT_NUM, &uart_config);
 
     // Install UART driver with RX and TX buffers
     esp_err = uart_driver_install(CONFIG_UART_PORT_NUM, CONFIG_UART_BUF_SIZE * 2, CONFIG_UART_BUF_SIZE, CONFIG_UART_EVENT_QUEUE_SIZE, &local_data.uart_event_queue, 0);
@@ -193,6 +186,12 @@ static esp_err_t uart_init(void)
     esp_err = uart_param_config(CONFIG_UART_PORT_NUM, &uart_config);
     if( esp_err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to configure UART parameters");
+        return esp_err;
+    }
+
+    esp_err = uart_set_rx_full_threshold(CONFIG_UART_PORT_NUM, 100);
+    if( esp_err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set rx full threshold");
         return esp_err;
     }
 
@@ -232,7 +231,8 @@ static void uart_rx_task(void *pvParameters)
 
         // Lock until any UART event occurs
 
-        if (xQueueReceive(local_data.uart_event_queue, (void *)&event, (TickType_t)portMAX_DELAY)) {
+        if (pdTRUE == xQueueReceive(local_data.uart_event_queue, (void *)&event, pdMS_TO_TICKS(1000))) {
+            
             // Received UART data
             ESP_LOGI(TAG, "Received UART data, with event type: %d", event.type);
 
@@ -240,84 +240,93 @@ static void uart_rx_task(void *pvParameters)
             switch(event.type){
                 case UART_DATA:
                     {
-                        // ESP_LOGI(TAG, "UART 1");
-
-                        // ! INITIAL DATA RECEPTION
+                        // * INITIAL DATA RECEPTION
                         // Read everything we have in our UART
-                        uint8_t temp[128]; // Temporary buffer to hold the incoming data.
-                        // ! This might be blocking our code until 128 bytes of data have arrived. Is it? Why does it run so slow.
-                        int len = uart_read_bytes(CONFIG_UART_PORT_NUM, temp, sizeof(temp), portMAX_DELAY);
+                        uint8_t temp[100]; // Temporary buffer to hold the incoming data.
+                        int len = uart_read_bytes(CONFIG_UART_PORT_NUM, temp, sizeof(temp), pdMS_TO_TICKS(100));
 
-                        // ESP_LOGI(TAG, "UART 2");
-
-                        // Check if uart_read_bytes() ran properly
-                        if(len < 0){
+                        // Check if uart_read_bytes ran properly.
+                        if(len == 0){
+                            ESP_LOGE(TAG, "Timed out on UART read.");
+                            esp_err = ESP_ERR_TIMEOUT;
+                            break;
+                        } else if (len < 0){
                             ESP_LOGE(TAG, "Failed to read UART data");
                             esp_err = ESP_ERR_INVALID_SIZE;
                             break;
                         }
 
-                        // ESP_LOGI(TAG, "UART 3");
+                        // ! dump_bytes("UART temp bytes", temp, (size_t)len);
 
+                        // * If this reaches the size of the buffer, itll invade the memory of other peripherals
                         memcpy(&local_data.rx_buffer[local_data.rx_len], temp, len); // Store in internal parser buffer
                         local_data.rx_len += len; // Increase buffer pointer
 
-                        // ESP_LOGI(TAG, "UART 4");
+                        // ! ESP_LOGI(TAG, "RX buffer after append: len=%zu", local_data.rx_len);
+                        // ! dump_bytes("RX buffer after append", local_data.rx_buffer, local_data.rx_len);
 
-                        // ! INTERNAL DATA PARSING
-                        for(int i = 0; i < local_data.rx_len - 1; i++)
+
+                        // * INTERNAL DATA PARSING
+                        int i = 0;
+                        while(i + 1 < local_data.rx_len)
                         {
 
                             // Check for a valid header in our message
 
-                            // ESP_LOGI(TAG, "UART 5: %02X", local_data.rx_buffer[i]);
-
                             // The ESP32 is little_endian, so the data I sent via UART is INVERTED upon arrival here
                             // 0xFF66 is stored in memory as [0x66][0xFF]
-                            if((local_data.rx_buffer[i] == UART_RX_HEADER_END) && (local_data.rx_buffer[i + 1] == UART_RX_HEADER_START))
+                            if((local_data.rx_buffer[i] == UART_RX_HEADER_END) && (local_data.rx_buffer[i+1] == UART_RX_HEADER_START))
                             {
-                                // Check if we have enough data for a full packet
-                                if(i >= sizeof(received_pkt_t))
-                                {
+                                // ! dump_bytes("Bytes around candidate header", &local_data.rx_buffer[i], local_data.rx_len - (size_t)i);
 
-                                    ESP_LOGI(TAG, "UART 6");
+                                // Check if we have enough data left in out buffer for a full packet               
+                                if(local_data.rx_len - i >= sizeof(received_pkt_t))
+                                {
 
                                     // Store a local copy
                                     received_pkt_t pkt;
                                     memcpy(&pkt, &local_data.rx_buffer[i], sizeof(received_pkt_t));
                                     
-                                    // Reverse the packet to match the original data sent by the controller
-                                    // reverse_packet(&pkt);
-
-                                    // ESP_LOGI(TAG, "UART 7");
 
                                     // Check every element of the packet, along with the checksum explicitly
                                     if(xor_checksum_verify((uint8_t *)&pkt, sizeof(received_pkt_t) - sizeof(uint8_t), pkt.checksum))
                                     {
-                                        // ! SEND TO DATA PROCESSING
+                                        // * SEND TO DATA PROCESSING
+
                                         // If we reach this point, we have a valid packet. Send it to the processing task.
-                                        // ESP_LOGI(TAG, "Received valid packet: counter=%llu, u.m=%f, u.b=%f, u.o=%f", pkt.counter, pkt.u.m, pkt.u.b, pkt.u.o);
+                                        // ! ESP_LOGI(TAG, "Checksum pass");
                                         xQueueSend(local_data.internal_data_queue, &pkt, portMAX_DELAY);
-                                        ESP_LOGI(TAG, "Received valid packet: counter=%llu, u.m=%f, u.b=%f, u.o=%f", pkt.counter, pkt.u.m, pkt.u.b, pkt.u.o);
                                     } else {
                                         // If the packet isnt valid, log and error and discard it.
                                         ESP_LOGE(TAG, "Invalid checksum for received packet");
                                     } 
 
+                                    size_t packet_offset = (size_t)i + sizeof(received_pkt_t);
+                                    size_t remaining = local_data.rx_len - packet_offset;
+
+                                    // ! ESP_LOGI(TAG,"Before memmove: i=%d rx_len=%zu packet_offset=%zu remaining=%zu", i, local_data.rx_len, packet_offset, remaining);
+                                    // ! dump_bytes("Before memmove RX buffer", local_data.rx_buffer, local_data.rx_len);
+
+
                                     // Move the remaining data to the start of the buffer
                                     memmove(local_data.rx_buffer, &local_data.rx_buffer[i + sizeof(received_pkt_t)], local_data.rx_len - (i + sizeof(received_pkt_t)));
-                                    local_data.rx_len -= (i + sizeof(received_pkt_t));
-                                    i = -1; // Reset index to start checking from the beginning of the buffer
+                                    local_data.rx_len = remaining;
+                                    i = 0; // Reset index to start checking from the beginning of the buffer
+
                                 } else {
                                     // Not enough data for a full packet, wait for more data to arrive
                                     ESP_LOGI(TAG, "Not enough data for a full packet, waiting for more data...");
                                 }
                             }
+
+                            i++;
+                            vTaskDelay(pdMS_TO_TICKS(1)); // Added for safety.
                         }
+
                         break;
                     }
                 case UART_BREAK:
-                    ESP_LOGV(TAG, "HW BREAK - Received 0x00");
+                    ESP_LOGE(TAG, "HW BREAK - Received 0x01");
                     uart_flush_input(CONFIG_UART_PORT_NUM);
                     xQueueReset(local_data.uart_event_queue);
                     break;
@@ -350,14 +359,17 @@ static void uart_process_task(void *pvParameters)
         received_pkt_t pkt;
 
         // Wait for data from the UART RX task
-        if (xQueueReceive(local_data.internal_data_queue, &pkt, portMAX_DELAY)){
+        if (xQueueReceive(local_data.internal_data_queue, &pkt, pdMS_TO_TICKS(1000)) == pdTRUE){
             
             // Only process if the received data is new
-            ESP_LOGI(TAG, "Received data from controller: counter=%llu, u.m=%f, u.b=%f, u.o=%f", pkt.counter, pkt.u.m, pkt.u.b, pkt.u.o);
+            ESP_LOGI(TAG, "Received data from controller: counter=%llu, u=%f", pkt.counter, pkt.u);
 
             // ! MAY NEED TO CHANGE THIS TO ACTUALLY CHECK IF I RESET ANY ESP32
             local_data.msg_counter = pkt.counter;
-            if(local_data.msg_counter != local_data.last_msg_counter)
+
+            // TODO Once code is debugged, add if(local_data.msg_counter != local_data.last_msg_counter)
+            // ! Currently, accept EVERY message received
+            if(true)
             {
                 // Update message counter for comparison
                 // Update internal counter for the message we are sending
@@ -366,15 +378,15 @@ static void uart_process_task(void *pvParameters)
 
                 // Process the received data (x = A*x_prev + B*u and y = C*x)
                 // Get x[k+1]
-                local_data.x_fut.m = (1.0-y_mb-u_m)*local_data.x.m + (y_bm)*local_data.x.b + (D_m)*pkt.u.m;
+                local_data.x_fut.m = (1.0-y_mb-u_m)*local_data.x.m + (y_bm)*local_data.x.b + (D_m)*pkt.u;
                 local_data.x_fut.b = (y_mb)*local_data.x.m + (1.0-y_bo-y_bm-u_b)*local_data.x.b + (y_ob)*local_data.x.o;
                 local_data.x_fut.o = y_bo*local_data.x.b + (1.0-y_ob-u_o)*local_data.x.o;
 
-                // Get y[k]
-                state_vector_t y;
-                y.m = c_m*local_data.x.m;
-                y.b = c_b*local_data.x.b;
-                y.o = c_o*local_data.x.o;
+                // Get y[k] (Since the other values are zeroed, DONT calculate them)
+                float y;
+                // TODO y = c_m*local_data.x.m;
+                // TODO y.b = c_b*local_data.x.b;
+                y = c_o*local_data.x.o;
 
                 // Update our internal state variables
                 local_data.x = local_data.x_fut;
@@ -392,11 +404,12 @@ static void uart_process_task(void *pvParameters)
                 }
 
                 // Log the data we are sending to the controller
-                ESP_LOGI(TAG, "Sent data to controller: counter=%llu, y.m=%f, y.b=%f, y.o=%f", plant_msg.counter, plant_msg.y.m, plant_msg.y.b, plant_msg.y.o);
+                // ! ESP_LOGI(TAG, "Sent data to controller: counter=%llu, y.m=%f, y.b=%f, y.o=%f", plant_msg.counter, plant_msg.y.m, plant_msg.y.b, plant_msg.y.o);
 
             } else {
                 ESP_LOGW(TAG, "Received old data, ignoring...");
             }
         }
+       vTaskDelay(pdMS_TO_TICKS(1));
     }
 } 

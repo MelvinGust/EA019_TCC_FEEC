@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.22)
 # To compile the debug project, set SDKCONFIG to sdkconfig.debug
 set(SDKCONFIG sdkconfig.release)
 
-list(APPEND EXTRA_COMPONENT_DIRS "src/main" "src/controller" "src/plant" "utils")
+list(APPEND EXTRA_COMPONENT_DIRS "src/apps" "src/third_party/mqtt" "src/utils" "$ENV{IDF_PATH}/examples/common_components/protocol_examples_common")
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(TCC-pid_lmi_controller_and_plant)

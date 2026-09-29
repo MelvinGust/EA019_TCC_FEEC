@@ -33,7 +33,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint16_t header;
     uint64_t counter;
-    state_vector_t u; // Control output; input to the plant
+    float u; // Control output; input to the plant
     uint8_t checksum;
 } controller_pkt_t;
 
@@ -41,10 +41,12 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint16_t header;
     uint64_t counter;
-    state_vector_t y; // Output of the plant
+    float y; // Output of the plant
     uint8_t checksum;
 } plant_pkt_t;
 
 void reverse_packet(void *packet);
 uint8_t xor_checksum(const uint8_t *data, size_t len);
 bool xor_checksum_verify(const uint8_t *data, size_t len, uint8_t checksum);
+
+void dump_bytes(const char *label, const uint8_t *buf, size_t len);

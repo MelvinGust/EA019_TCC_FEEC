@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <esp_log.h>
 
 static void reverse_byte_field(void *packet, size_t len);
 
@@ -24,7 +25,7 @@ uint8_t xor_checksum(const uint8_t *data, size_t len)
 bool xor_checksum_verify(const uint8_t *data, size_t len, uint8_t checksum)
 {
     uint8_t calc_checksum = xor_checksum(data, len);
-    bool is_valid = !((bool)((calc_checksum)^(checksum)));
+    bool is_valid = !((bool)((calc_checksum)^(checksum))); // ! Is this correct?
     return is_valid;
 }
 
@@ -56,4 +57,34 @@ static void reverse_byte_field(void *packet, size_t len)
         byte_ptr[i] = byte_ptr[len - 1 - i];
         byte_ptr[len - 1 - i] = temp;
     }
+}
+
+/* ======== DEBUG FUNCTIONS ======== */
+
+void dump_bytes(const char *label, const uint8_t *buf, size_t len)
+{
+    const size_t max_bytes = 32;
+    size_t print_len = (len < max_bytes) ? len : max_bytes;
+
+    char line[256];
+    size_t used = 0;
+
+    if (buf == NULL || len == 0) {
+        ESP_LOGI("DEBUG", "%s: <empty>", label);
+        return;
+    }
+
+    for (size_t i = 0; i < print_len; ++i) {
+        int n = snprintf(&line[used], sizeof(line) - used, "%02X ", buf[i]);
+        if (n < 0) {
+            break;
+        }
+        used += (size_t)n;
+    }
+
+    ESP_LOGI("DEBUG", "%s (%zu bytes): %s%s",
+             label,
+             len,
+             line,
+             (len > max_bytes) ? "..." : "");
 }

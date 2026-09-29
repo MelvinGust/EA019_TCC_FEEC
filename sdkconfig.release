@@ -706,6 +706,124 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
+# Example Connection Configuration
+#
+# default:
+CONFIG_ENV_GPIO_RANGE_MIN=0
+# default:
+CONFIG_ENV_GPIO_RANGE_MAX=39
+# default:
+CONFIG_ENV_GPIO_IN_RANGE_MAX=39
+# default:
+CONFIG_ENV_GPIO_OUT_RANGE_MAX=33
+# default:
+CONFIG_EXAMPLE_CONNECT_WIFI=y
+# default:
+# CONFIG_EXAMPLE_WIFI_SSID_PWD_FROM_STDIN is not set
+# default:
+CONFIG_EXAMPLE_PROVIDE_WIFI_CONSOLE_CMD=y
+CONFIG_EXAMPLE_WIFI_SSID="esp32_test"
+CONFIG_EXAMPLE_WIFI_PASSWORD="password"
+# default:
+CONFIG_EXAMPLE_WIFI_CONN_MAX_RETRY=6
+# default:
+# CONFIG_EXAMPLE_WIFI_SCAN_METHOD_FAST is not set
+# default:
+CONFIG_EXAMPLE_WIFI_SCAN_METHOD_ALL_CHANNEL=y
+
+#
+# WiFi Scan threshold
+#
+# default:
+CONFIG_EXAMPLE_WIFI_SCAN_RSSI_THRESHOLD=-127
+# default:
+CONFIG_EXAMPLE_WIFI_AUTH_OPEN=y
+# default:
+# CONFIG_EXAMPLE_WIFI_AUTH_WEP is not set
+# default:
+# CONFIG_EXAMPLE_WIFI_AUTH_WPA_PSK is not set
+# default:
+# CONFIG_EXAMPLE_WIFI_AUTH_WPA2_PSK is not set
+# default:
+# CONFIG_EXAMPLE_WIFI_AUTH_WPA_WPA2_PSK is not set
+# default:
+# CONFIG_EXAMPLE_WIFI_AUTH_WPA2_ENTERPRISE is not set
+# default:
+# CONFIG_EXAMPLE_WIFI_AUTH_WPA3_PSK is not set
+# default:
+# CONFIG_EXAMPLE_WIFI_AUTH_WPA2_WPA3_PSK is not set
+# default:
+# CONFIG_EXAMPLE_WIFI_AUTH_WAPI_PSK is not set
+# end of WiFi Scan threshold
+
+# default:
+CONFIG_EXAMPLE_WIFI_CONNECT_AP_BY_SIGNAL=y
+# default:
+# CONFIG_EXAMPLE_WIFI_CONNECT_AP_BY_SECURITY is not set
+# default:
+# CONFIG_EXAMPLE_CONNECT_ETHERNET is not set
+# default:
+CONFIG_EXAMPLE_DISABLE_ETHERNET_CONFIG=y
+# default:
+# CONFIG_EXAMPLE_CONNECT_PPP is not set
+# default:
+CONFIG_EXAMPLE_CONNECT_IPV4=y
+# default:
+CONFIG_EXAMPLE_CONNECT_IPV6=y
+# default:
+CONFIG_EXAMPLE_CONNECT_IPV6_PREF_LOCAL_LINK=y
+# default:
+# CONFIG_EXAMPLE_CONNECT_IPV6_PREF_GLOBAL is not set
+# default:
+# CONFIG_EXAMPLE_CONNECT_IPV6_PREF_SITE_LOCAL is not set
+# default:
+# CONFIG_EXAMPLE_CONNECT_IPV6_PREF_UNIQUE_LOCAL is not set
+# end of Example Connection Configuration
+
+#
+# Ethernet Configuration
+#
+# default:
+CONFIG_ETHERNET_INIT_OVERRIDE_DISABLE=y
+# default:
+CONFIG_ETHERNET_SOC_EMAC_SUPPORTED=1
+# default:
+CONFIG_ETHERNET_SOC_EMAC_SUPPORT_1000M=0
+# default:
+CONFIG_ETHERNET_SPI_USE_DM9051=0
+# default:
+CONFIG_ETHERNET_SPI_USE_KSZ8851SNL=0
+# default:
+CONFIG_ETHERNET_SPI_USE_W5500=0
+# default:
+CONFIG_ETHERNET_SPI_USE_W6100=0
+# default:
+CONFIG_ETHERNET_SPI_USE_CH390=0
+# default:
+CONFIG_ETHERNET_SPI_USE_ENC28J60=0
+# default:
+CONFIG_ETHERNET_SPI_USE_LAN865X=0
+# default:
+CONFIG_ETHERNET_PHY_USE_IP101=0
+# default:
+CONFIG_ETHERNET_PHY_USE_LAN87XX=0
+# default:
+CONFIG_ETHERNET_PHY_USE_LAN867X=0
+# default:
+CONFIG_ETHERNET_PHY_USE_DP83848=0
+# default:
+CONFIG_ETHERNET_PHY_USE_KSZ80XX=0
+# default:
+CONFIG_ETHERNET_PHY_USE_RTL8201=0
+# default:
+CONFIG_ETHERNET_PHY_USE_VSC8541=0
+# default:
+CONFIG_ETHERNET_PHY_USE_YT8531=0
+# default:
+CONFIG_ETHERNET_DEFAULT_EVENT_HANDLER=y
+# end of Ethernet Configuration
+
+#
 # Compiler options
 #
 # default:
@@ -2174,17 +2292,11 @@ CONFIG_LOG_VERSION=1
 #
 # Log Level
 #
-# default:
 # CONFIG_LOG_DEFAULT_LEVEL_NONE is not set
-# default:
 # CONFIG_LOG_DEFAULT_LEVEL_ERROR is not set
-# default:
 # CONFIG_LOG_DEFAULT_LEVEL_WARN is not set
-# default:
 CONFIG_LOG_DEFAULT_LEVEL_INFO=y
-# default:
 # CONFIG_LOG_DEFAULT_LEVEL_DEBUG is not set
-# default:
 # CONFIG_LOG_DEFAULT_LEVEL_VERBOSE is not set
 # default:
 CONFIG_LOG_DEFAULT_LEVEL=3
@@ -2200,7 +2312,6 @@ CONFIG_LOG_MAXIMUM_LEVEL=3
 #
 # Level Settings
 #
-# default:
 # CONFIG_LOG_MASTER_LEVEL is not set
 # default:
 CONFIG_LOG_DYNAMIC_LEVEL_CONTROL=y
@@ -3246,6 +3357,20 @@ CONFIG_WL_SECTOR_SIZE=4096
 # end of Wear Levelling
 
 #
+# Controller Module Configuration
+#
+# default:
+CONFIG_CONTROLLER_UART_RX_TASK_STACK_SIZE=3072
+# default:
+CONFIG_CONTROLLER_UART_RX_TASK_PRIORITY=10
+# default:
+CONFIG_CONTROLLER_UART_PROCESS_STACK_SIZE=4096
+# default:
+CONFIG_CONTROLLER_UART_PROCESS_TASK_PRIORITY=9
+CONFIG_CONTROLLER_FREQUENCY=100
+# end of Controller Module Configuration
+
+#
 # Main Configuration
 #
 CONFIG_PLANT_MODULE_ENABLE=y
@@ -3264,20 +3389,6 @@ CONFIG_UART_EVENT_QUEUE_SIZE=20
 # end of Main Configuration
 
 #
-# Controller Module Configuration
-#
-# default:
-CONFIG_CONTROLLER_UART_RX_TASK_STACK_SIZE=3072
-# default:
-CONFIG_CONTROLLER_UART_RX_TASK_PRIORITY=10
-# default:
-CONFIG_CONTROLLER_UART_PROCESS_STACK_SIZE=4096
-# default:
-CONFIG_CONTROLLER_UART_PROCESS_TASK_PRIORITY=9
-CONFIG_CONTROLLER_FREQUENCY=1
-# end of Controller Module Configuration
-
-#
 # Plant Module Configuration
 #
 # default:
@@ -3289,6 +3400,33 @@ CONFIG_PLANT_UART_PROCESS_STACK_SIZE=4096
 # default:
 CONFIG_PLANT_UART_PROCESS_TASK_PRIORITY=9
 # end of Plant Module Configuration
+
+#
+# ESP-MQTT Configurations
+#
+# default:
+CONFIG_MQTT_PROTOCOL_311=y
+# default:
+# CONFIG_MQTT_PROTOCOL_5 is not set
+# default:
+CONFIG_MQTT_TRANSPORT_SSL=y
+# default:
+CONFIG_MQTT_TRANSPORT_WEBSOCKET=y
+# default:
+CONFIG_MQTT_TRANSPORT_WEBSOCKET_SECURE=y
+# default:
+# CONFIG_MQTT_MSG_ID_INCREMENTAL is not set
+# default:
+# CONFIG_MQTT_SKIP_PUBLISH_IF_DISCONNECTED is not set
+# default:
+# CONFIG_MQTT_REPORT_DELETED_MESSAGES is not set
+# default:
+# CONFIG_MQTT_USE_CUSTOM_CONFIG is not set
+# default:
+# CONFIG_MQTT_TASK_CORE_SELECTION_ENABLED is not set
+# default:
+# CONFIG_MQTT_CUSTOM_OUTBOX is not set
+# end of ESP-MQTT Configurations
 # end of Component config
 
 # default:
