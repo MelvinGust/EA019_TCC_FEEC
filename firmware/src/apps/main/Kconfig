@@ -50,4 +50,11 @@ menu "Main Configuration"
         help
             Defines the size of the UART event queue.
 
+    config PUBLISH_FREQUENCY
+        int "MQTT Publish frequency"
+        range 1 1000
+        default 20
+        help
+            Defines the frequency at which the plant and controller will enqueue data for the MQTT task to publish.
+
 endmenu

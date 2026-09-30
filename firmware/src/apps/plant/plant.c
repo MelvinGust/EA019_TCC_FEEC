@@ -1,18 +1,16 @@
 /** 
  * @file plant.c
  * @author Melvin Gustavo Maradiaga Elvir
- * @date 24-08-2026
+ * @date 29-09-2026
  *
  * @brief 
  * Source file for the medicine absorption system in state-space representation.
+ * The plant receives the controller's output (float u) and attempts to simulate how medicine will be absorved by the body.
+ * It returns as output (float y) the medicine's organ absorption rate, and sends it back to the controller, closing
+ * the control loop.
  * 
  * @details
- * The controller module sends signals via UART to the plant module, which simulates the medicine absorption system.
  * 
- * @note
- * TODO: Check whether I should increase my internal UART data buffer.
- * TODO: Check whether my buffer sizes can handle the data reception rate from the controller. 
- * TODO: Check whether my stack sizes need to be changed, because of performance issues and memory loss on the system.
  */
 
 /* Preprocessor directives */
@@ -20,9 +18,17 @@
 #include "sdkconfig.h"
 #include "plant.h"
 #include "utils.h"
+#include "mqtt_client.h"
+
+#include "protocol_examples_common.h"
+#include "nvs_flash.h"
 
 #include "esp_err.h"
+#include "esp_timer.h"
 #include <esp_log.h>
+#include "esp_system.h"
+#include "esp_event.h"
+#include "esp_netif.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -54,7 +60,6 @@ const float c_b = 0.0;
 const float c_o = 1.0;
 
 /* Data structures */
-
 typedef controller_pkt_t received_pkt_t;
 typedef plant_pkt_t sent_pkt_t;
 
@@ -65,6 +70,13 @@ typedef struct {
     QueueHandle_t uart_event_queue;
     QueueHandle_t internal_data_queue;
 
+    // For FreeRTOS or ESPIDF
+    SemaphoreHandle_t mqtt_mutex;
+    esp_timer_handle_t mqtt_timer_handle;
+
+    // For MQTT processing
+    esp_mqtt_client_handle_t mqtt_client;
+
     // For UART processing
     state_vector_t x;
     state_vector_t x_fut;
@@ -73,15 +85,94 @@ typedef struct {
     uint64_t last_msg_counter;
 } system_data_t;
 
+typedef struct {
+    float y;
+    state_vector_t x;
+} mqtt_plant_t;
+
 /* Variables */
 static system_data_t local_data;
+static mqtt_plant_t mqtt_data = {0};
 
 /* Initialization */
+static void mqtt_timer_callback(void *arg);
+static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
+static esp_err_t mqtt_app_init(void);
 static esp_err_t uart_init(void);
 static void uart_rx_task(void *pvParameters);
 static void uart_process_task(void *pvParameters);
 
-/* ----- PUBLIC FUNCTIONS ----- */
+/* ========== CALLBACKS ========== */
+
+/**
+ * @brief 
+ * MQTT Internal State Publishing
+ */
+static void mqtt_timer_callback(void *arg)
+{
+    char mqtt_msg[128];
+
+    // TODO Update timestamp for the messages
+
+    // Publish data onto the state topic
+    if(xSemaphoreTake(local_data.mqtt_mutex, portMAX_DELAY) == pdTRUE)
+    {
+        snprintf(mqtt_msg, sizeof(mqtt_msg),
+            "{\"y\":%.3f,\"x_b\":%.3f,\"x_m\":%.3f,\"x_o\":%.3f}",
+            mqtt_data.y, mqtt_data.x.b, mqtt_data.x.m, mqtt_data.x.o);
+        esp_mqtt_client_enqueue(local_data.mqtt_client, "plant/state", mqtt_msg, sizeof(mqtt_msg), 1, 0, false);
+        xSemaphoreGive(local_data.mqtt_mutex);
+    }
+}
+
+/**
+ * @brief 
+ * MQTT event handler callback. Currently, serves as a debug event handler.
+ */
+static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
+{
+    esp_mqtt_event_handle_t event = event_data;
+    esp_mqtt_client_handle_t client = event->client;
+
+    ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%" PRIi32 "", base, event_id);
+
+    switch ((esp_mqtt_event_id_t)event_id) 
+    {
+        case MQTT_EVENT_CONNECTED:
+            ESP_LOGD(TAG, "MQTT_EVENT_CONNECTED");
+            break;
+
+        case MQTT_EVENT_DISCONNECTED:
+            ESP_LOGD(TAG, "MQTT_EVENT_DISCONNECTED");
+            break;
+
+        case MQTT_EVENT_SUBSCRIBED:
+            ESP_LOGD(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d, return code=0x%02x ", event->msg_id, (uint8_t)*event->data);
+            break;
+
+        case MQTT_EVENT_UNSUBSCRIBED:
+            ESP_LOGD(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
+            break;
+
+        case MQTT_EVENT_PUBLISHED:
+            ESP_LOGD(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
+            break;
+
+        case MQTT_EVENT_DATA:
+            ESP_LOGD(TAG, "MQTT_EVENT_DATA");
+            break;
+
+        case MQTT_EVENT_ERROR:
+            ESP_LOGD(TAG, "MQTT_EVENT_ERROR");
+            break;
+
+        default:
+            ESP_LOGD(TAG, "Other event id:%d", event->event_id);
+            break;
+    }
+}
+
+/* ========== PUBLIC FUNCTIONS ========== */
 
 /**
  * @brief Initializes the plant module.
@@ -95,12 +186,9 @@ esp_err_t plant_init(void)
     esp_err_t esp_err = ESP_OK;
     BaseType_t ret_code = pdPASS;
 
-    #ifndef CONFIG_DEBUG_LOG_ENABLED
-       //esp_log_level_set(TAG, ESP_LOG_ERROR);
+    #ifndef CONFIG_PLANT_DEBUG_LOG_ENABLED
+       esp_log_level_set(TAG, ESP_LOG_ERROR);
     #endif
-
-    // ! PUT INSIDE OF IFDEF
-    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
     /* Local data initialization */
 
@@ -114,13 +202,31 @@ esp_err_t plant_init(void)
 
     // Initialize freeRTOS entities
     local_data.internal_data_queue = xQueueCreate(5, sizeof(received_pkt_t));
+    local_data.mqtt_mutex = xSemaphoreCreateMutex();
 
     /* Peripheral Initialization */
+
     // Init UART (RX/TX) communication
     esp_err = uart_init();
     if (esp_err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize UART");
         return ret_code;
+    }
+
+    // Init MQTT 
+    esp_err = mqtt_app_init();
+    if(esp_err != ESP_OK) { 
+        ESP_LOGE(TAG, "Failed to initialize MQTT plugin");
+    }
+
+    // TODO Init ADC
+
+    // Create MQTT publisher timer
+    const esp_timer_create_args_t timer_args = {.callback = &mqtt_timer_callback, .name = "mqtt_publisher_timer"};
+    esp_err = esp_timer_create(&timer_args, &local_data.mqtt_timer_handle);
+    if (esp_err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to config mqtt timer");
+        return esp_err;
     }
 
     /* Task Initialization */
@@ -139,11 +245,18 @@ esp_err_t plant_init(void)
         return ESP_FAIL;
     }
 
+    // Start the MQTT publisher timer. Which every tick will publish data onto the MQTT broker.
+    esp_err = esp_timer_start_periodic(local_data.mqtt_timer_handle, HZ_TO_US(CONFIG_PUBLISH_FREQUENCY));
+    if (esp_err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to start MQTT publisher timer");
+        return esp_err;
+    }
+
     ESP_LOGI(TAG, "Plant Module init!");
     return esp_err;
 }
 
-/* ----- PRIVATE FUNCTIONS ----- */
+/* ========== PRIVATE FUNCTIONS ========== */
 
 /**
  * @brief Initializes the UART driver for communication with the controller.
@@ -164,8 +277,6 @@ static esp_err_t uart_init(void)
     esp_err_t esp_err = ESP_OK;
 
     // Configure UART parameters
-    // ! CHANGE HOW UART DATA RECEPTION WORKS
-    // ! look for the rxfifo_full_tresh parameter.
     uart_config_t uart_config = {
         .baud_rate = CONFIG_UART_BAUD_RATE,
         .data_bits = UART_DATA_8_BITS,
@@ -189,6 +300,7 @@ static esp_err_t uart_init(void)
         return esp_err;
     }
 
+    // Configure UART_DATA event to happen with 100 bytes on the RX buffer.
     esp_err = uart_set_rx_full_threshold(CONFIG_UART_PORT_NUM, 100);
     if( esp_err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set rx full threshold");
@@ -205,6 +317,75 @@ static esp_err_t uart_init(void)
     ESP_LOGI(TAG, "UART initialized successfully");
 
     return esp_err;    
+}
+
+
+/**
+ * @brief Initializes the ESP32s WIFI driver and connects to MQTT.
+ * @return ESP_OK if successful, otherwise an error code.
+ * 
+ * @details
+ * This function initializes the peripherals needed to use the ESP32s WIFI.
+ * As currently configured, it connects onto my laptop's hotspot and then establishes a connection with
+ * the MOSQUITTO broker that's running in the background of my pc. Any other device that connects to it can
+ * communicate with my ESP32.
+ * 
+ * MQTT events are handled by the mqtt_event_handler function.
+ */
+static esp_err_t mqtt_app_init(void)
+{   
+    esp_err_t esp_err = ESP_OK;
+
+    esp_err = nvs_flash_init();
+    if( esp_err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize NVS memory");
+        return esp_err;
+    }
+
+    esp_err = esp_netif_init();
+    if( esp_err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize ESP NETIF");
+        return esp_err;
+    }
+
+    esp_err = esp_event_loop_create_default();
+    if( esp_err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize ESP Event Loop Library");
+        return esp_err;
+    }
+
+    // TODO Implement an actual connect to WIFI algorithm.
+    // ! example_connect is a BANDAID.
+    esp_err = example_connect();
+    if( esp_err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to connect to WiFi");
+        return esp_err;
+    }
+
+    esp_mqtt_client_config_t mqtt_cfg = {
+        .broker.address.uri = "mqtt://10.42.0.1:1883",
+        .credentials = {
+            .username = "melvingust",
+            .authentication = {
+                .password = "chihuahuaselvagem",
+                },
+        },
+    };
+    local_data.mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
+
+    esp_err = esp_mqtt_client_register_event(local_data.mqtt_client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
+    if( esp_err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register event handler");
+        return esp_err;
+    }
+
+    esp_err = esp_mqtt_client_start(local_data.mqtt_client);
+    if( esp_err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to start MQTT client");
+        return esp_err;
+    }
+
+    return esp_err;
 }
 
 /**
@@ -256,15 +437,8 @@ static void uart_rx_task(void *pvParameters)
                             break;
                         }
 
-                        // ! dump_bytes("UART temp bytes", temp, (size_t)len);
-
-                        // * If this reaches the size of the buffer, itll invade the memory of other peripherals
                         memcpy(&local_data.rx_buffer[local_data.rx_len], temp, len); // Store in internal parser buffer
                         local_data.rx_len += len; // Increase buffer pointer
-
-                        // ! ESP_LOGI(TAG, "RX buffer after append: len=%zu", local_data.rx_len);
-                        // ! dump_bytes("RX buffer after append", local_data.rx_buffer, local_data.rx_len);
-
 
                         // * INTERNAL DATA PARSING
                         int i = 0;
@@ -277,8 +451,6 @@ static void uart_rx_task(void *pvParameters)
                             // 0xFF66 is stored in memory as [0x66][0xFF]
                             if((local_data.rx_buffer[i] == UART_RX_HEADER_END) && (local_data.rx_buffer[i+1] == UART_RX_HEADER_START))
                             {
-                                // ! dump_bytes("Bytes around candidate header", &local_data.rx_buffer[i], local_data.rx_len - (size_t)i);
-
                                 // Check if we have enough data left in out buffer for a full packet               
                                 if(local_data.rx_len - i >= sizeof(received_pkt_t))
                                 {
@@ -294,7 +466,6 @@ static void uart_rx_task(void *pvParameters)
                                         // * SEND TO DATA PROCESSING
 
                                         // If we reach this point, we have a valid packet. Send it to the processing task.
-                                        // ! ESP_LOGI(TAG, "Checksum pass");
                                         xQueueSend(local_data.internal_data_queue, &pkt, portMAX_DELAY);
                                     } else {
                                         // If the packet isnt valid, log and error and discard it.
@@ -303,10 +474,6 @@ static void uart_rx_task(void *pvParameters)
 
                                     size_t packet_offset = (size_t)i + sizeof(received_pkt_t);
                                     size_t remaining = local_data.rx_len - packet_offset;
-
-                                    // ! ESP_LOGI(TAG,"Before memmove: i=%d rx_len=%zu packet_offset=%zu remaining=%zu", i, local_data.rx_len, packet_offset, remaining);
-                                    // ! dump_bytes("Before memmove RX buffer", local_data.rx_buffer, local_data.rx_len);
-
 
                                     // Move the remaining data to the start of the buffer
                                     memmove(local_data.rx_buffer, &local_data.rx_buffer[i + sizeof(received_pkt_t)], local_data.rx_len - (i + sizeof(received_pkt_t)));
@@ -352,6 +519,15 @@ static void uart_rx_task(void *pvParameters)
     }
 }
 
+/**
+ * @brief 
+ * Task that processes the packets received from the plant.
+ * 
+ * @param pvParameters Pointer to task parameters (not used).
+ * 
+ * @details
+ * This function reads the output (float y) and the counter the plant module sent, and updates our local_data structure.
+ */
 static void uart_process_task(void *pvParameters)
 {
     while(true) 
@@ -362,18 +538,12 @@ static void uart_process_task(void *pvParameters)
         if (xQueueReceive(local_data.internal_data_queue, &pkt, pdMS_TO_TICKS(1000)) == pdTRUE){
             
             // Only process if the received data is new
-            ESP_LOGI(TAG, "Received data from controller: counter=%llu, u=%f", pkt.counter, pkt.u);
-
-            // ! MAY NEED TO CHANGE THIS TO ACTUALLY CHECK IF I RESET ANY ESP32
+            ESP_LOGD(TAG, "Received data from controller: counter=%llu, u=%f", pkt.counter, pkt.u);
             local_data.msg_counter = pkt.counter;
 
-            // TODO Once code is debugged, add if(local_data.msg_counter != local_data.last_msg_counter)
-            // ! Currently, accept EVERY message received
-            if(true)
+            if(local_data.msg_counter != local_data.last_msg_counter)
             {
                 // Update message counter for comparison
-                // Update internal counter for the message we are sending
-                local_data.internal_counter++;
                 local_data.last_msg_counter = local_data.msg_counter;
 
                 // Process the received data (x = A*x_prev + B*u and y = C*x)
@@ -384,8 +554,6 @@ static void uart_process_task(void *pvParameters)
 
                 // Get y[k] (Since the other values are zeroed, DONT calculate them)
                 float y;
-                // TODO y = c_m*local_data.x.m;
-                // TODO y.b = c_b*local_data.x.b;
                 y = c_o*local_data.x.o;
 
                 // Update our internal state variables
@@ -394,6 +562,7 @@ static void uart_process_task(void *pvParameters)
                 // Send the output data back to the controller via UART
                 int len;
                 sent_pkt_t plant_msg;
+                local_data.internal_counter++;
                 plant_msg.header = UART_TX_PKT_HEADER;
                 plant_msg.counter = local_data.internal_counter;
                 plant_msg.y = y;
@@ -403,13 +572,10 @@ static void uart_process_task(void *pvParameters)
                     ESP_LOGE(TAG, "Failed to send data to controller");
                 }
 
-                // Log the data we are sending to the controller
-                // ! ESP_LOGI(TAG, "Sent data to controller: counter=%llu, y.m=%f, y.b=%f, y.o=%f", plant_msg.counter, plant_msg.y.m, plant_msg.y.b, plant_msg.y.o);
-
             } else {
                 ESP_LOGW(TAG, "Received old data, ignoring...");
             }
         }
-       vTaskDelay(pdMS_TO_TICKS(1));
+       vTaskDelay(pdMS_TO_TICKS(1)); // Added so FreeRTOS' idle tasks can run, and reset their internal watchdogs.
     }
 } 

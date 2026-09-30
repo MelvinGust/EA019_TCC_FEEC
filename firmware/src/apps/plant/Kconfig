@@ -29,5 +29,11 @@ menu "Plant Module Configuration"
         help
             Defines task priority for the plant module task.
     
+    config PLANT_DEBUG_LOG_ENABLED
+        bool "Plant debug log flag"
+        default n
+        help
+            If true, enables ESP logging with verbosity DEBUG.
+    
 
 endmenu
