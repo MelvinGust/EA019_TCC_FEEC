@@ -181,16 +181,18 @@ static void mqtt_timer_callback(void *arg)
             "{\"K_p\":%.3f,\"K_i\":%.3f,\"u\":%.3f,\"x_i\":%.3f}",
             mqtt_data.K_p, mqtt_data.K_i, mqtt_data.u, mqtt_data.x_i);
         xSemaphoreGive(local_data.mqtt_mutex);
+
+        esp_mqtt_client_publish(local_data.mqtt_client, "ctrl/state", mqtt_msg, len, 1, 0);
     }
-    esp_mqtt_client_publish(local_data.mqtt_client, "ctrl/state", mqtt_msg, len, 1, 0);
 
     // Publish data onto the reference topic
     if(xSemaphoreTake(local_data.r_mutex, portMAX_DELAY) == pdTRUE)
     {
         len = snprintf(ref_msg, sizeof(ref_msg),"{\"ref\":%3f}", local_data.r);
         xSemaphoreGive(local_data.r_mutex);
+
+        esp_mqtt_client_publish(local_data.mqtt_client, "ctrl/ref", ref_msg, len, 1, 0);
     }
-    esp_mqtt_client_publish(local_data.mqtt_client, "ctrl/ref", ref_msg, len, 1, 0);
 }
 
 /**

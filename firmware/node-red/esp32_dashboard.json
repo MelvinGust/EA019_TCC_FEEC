@@ -1,0 +1,536 @@
+[
+    {
+        "id": "35ad271e",
+        "type": "tab",
+        "label": "ESP32 Control System",
+        "disabled": false,
+        "info": "FlowFuse Dashboard flow for ESP32 controller and plant over MQTT."
+    },
+    {
+        "id": "4bbe233f",
+        "type": "mqtt in",
+        "z": "35ad271e",
+        "name": "Controller state: ctrl/state",
+        "topic": "ctrl/state",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "541a4b79",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 120,
+        "wires": [
+            [
+                "8f69359b"
+            ]
+        ]
+    },
+    {
+        "id": "92b176de",
+        "type": "mqtt in",
+        "z": "35ad271e",
+        "name": "Plant state: plant/state",
+        "topic": "plant/state",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "541a4b79",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 420,
+        "wires": [
+            [
+                "65ba38e3"
+            ]
+        ]
+    },
+    {
+        "id": "3c36a4bb",
+        "type": "ui-number-input",
+        "z": "35ad271e",
+        "group": "1387a5f8",
+        "name": "Reference input",
+        "label": "Reference (ctrl/ref)",
+        "order": 1,
+        "width": "6",
+        "height": "1",
+        "topic": "payload",
+        "topicType": "msg",
+        "min": 0,
+        "max": 20,
+        "step": 0.1,
+        "tooltip": "Setpoint sent to controller ESP32 (0–20 to match the plant-output graph)",
+        "delay": 300,
+        "passthru": false,
+        "sendOnBlur": true,
+        "sendOnEnter": true,
+        "className": "",
+        "icon": "send",
+        "iconPosition": "left",
+        "spinner": true,
+        "x": 390,
+        "y": 620,
+        "wires": [
+            [
+                "e5682f81"
+            ]
+        ]
+    },
+    {
+        "id": "4201910c",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "1387a5f8",
+        "order": 2,
+        "width": "3",
+        "height": "1",
+        "name": "Kp display",
+        "label": "Kₚ",
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 390,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "011a0e1b",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "1387a5f8",
+        "order": 3,
+        "width": "3",
+        "height": "1",
+        "name": "Ki display",
+        "label": "Kᵢ",
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 390,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "eab89c7e",
+        "type": "ui-chart",
+        "z": "35ad271e",
+        "group": "1387a5f8",
+        "name": "Controller output u",
+        "label": "Controller Output u",
+        "order": 4,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "Time",
+        "xAxisProperty": "timestamp",
+        "xAxisPropertyType": "msg",
+        "xAxisType": "time",
+        "yAxisLabel": "u",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "",
+        "ymax": "",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "circle",
+        "pointRadius": 2,
+        "showLegend": true,
+        "removeOlder": 300,
+        "removeOlderUnit": "1",
+        "removeOlderPoints": "",
+        "colors": [
+            "#1976d2",
+            "#ef5350",
+            "#66bb6a",
+            "#ffa726",
+            "#ab47bc"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e0e0e0"
+        ],
+        "width": "12",
+        "height": "6",
+        "className": "",
+        "x": 390,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "444ea1a2",
+        "type": "ui-chart",
+        "z": "35ad271e",
+        "group": "f2cbbd43",
+        "name": "Reference and plant output",
+        "label": "Reference vs Plant Output",
+        "order": 1,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "Time",
+        "xAxisProperty": "timestamp",
+        "xAxisPropertyType": "msg",
+        "xAxisType": "time",
+        "yAxisLabel": "Reference / y",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "20",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "circle",
+        "pointRadius": 2,
+        "showLegend": true,
+        "removeOlder": 300,
+        "removeOlderUnit": "1",
+        "removeOlderPoints": "",
+        "colors": [
+            "#1976d2",
+            "#ef5350",
+            "#66bb6a",
+            "#ffa726",
+            "#ab47bc"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e0e0e0"
+        ],
+        "width": "12",
+        "height": "6",
+        "className": "",
+        "x": 390,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d9b1c769",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "983cc445",
+        "order": 1,
+        "width": "3",
+        "height": "1",
+        "name": "x_b display",
+        "label": "x_b",
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 700,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "47bdedbc",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "983cc445",
+        "order": 2,
+        "width": "3",
+        "height": "1",
+        "name": "x_m display",
+        "label": "x_m",
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 700,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "981195b3",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "983cc445",
+        "order": 3,
+        "width": "3",
+        "height": "1",
+        "name": "x_o display",
+        "label": "x_o",
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 700,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "36b2c4d2",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "983cc445",
+        "order": 4,
+        "width": "3",
+        "height": "1",
+        "name": "x_i display",
+        "label": "x_i",
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 700,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "8f69359b",
+        "type": "function",
+        "z": "35ad271e",
+        "name": "Parse Controller State",
+        "func": "let d = msg.payload;\nif (typeof d === \"string\") { try { d = JSON.parse(d); } catch (e) { node.warn(\"Invalid JSON on ctrl/state\"); return null; } }\nif (!d || ![\"K_p\", \"K_i\", \"u\", \"x_i\"].every(k => typeof d[k] === \"number\" && Number.isFinite(d[k]))) { node.warn(\"Unexpected ctrl/state payload\"); return null; }\nconst ts = Date.now();\nreturn [\n  {topic: \"Controller Output\", payload: d.u, timestamp: ts},\n  {payload: d.K_p},\n  {payload: d.K_i},\n  {payload: d.x_i}\n];",
+        "outputs": 4,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 120,
+        "wires": [
+            [
+                "eab89c7e"
+            ],
+            [
+                "4201910c"
+            ],
+            [
+                "011a0e1b"
+            ],
+            [
+                "36b2c4d2"
+            ]
+        ]
+    },
+    {
+        "id": "65ba38e3",
+        "type": "function",
+        "z": "35ad271e",
+        "name": "Parse Plant State",
+        "func": "let d = msg.payload;\nif (typeof d === \"string\") { try { d = JSON.parse(d); } catch (e) { node.warn(\"Invalid JSON on plant/state\"); return null; } }\nif (!d || ![\"y\", \"x_b\", \"x_m\", \"x_o\"].every(k => typeof d[k] === \"number\" && Number.isFinite(d[k]))) { node.warn(\"Unexpected plant/state payload\"); return null; }\nreturn [\n  {topic: \"Plant Output\", payload: d.y, timestamp: Date.now()},\n  {payload: d.x_b},\n  {payload: d.x_m},\n  {payload: d.x_o}\n];",
+        "outputs": 4,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 420,
+        "wires": [
+            [
+                "444ea1a2"
+            ],
+            [
+                "d9b1c769"
+            ],
+            [
+                "47bdedbc"
+            ],
+            [
+                "981195b3"
+            ]
+        ]
+    },
+    {
+        "id": "e5682f81",
+        "type": "function",
+        "z": "35ad271e",
+        "name": "Publish and remember reference",
+        "func": "const reference = Number(msg.payload);\nif (!Number.isFinite(reference)) { node.warn(\"Reference must be a finite number\"); return null; }\nflow.set(\"ctrl_ref\", reference);\nreturn [\n  {topic: \"ctrl/ref\", payload: String(reference)},\n  {topic: \"Reference\", payload: reference, timestamp: Date.now()}\n];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 620,
+        "wires": [
+            [
+                "54d71ff6"
+            ],
+            [
+                "444ea1a2"
+            ]
+        ]
+    },
+    {
+        "id": "54d71ff6",
+        "type": "mqtt out",
+        "z": "35ad271e",
+        "name": "Publish ctrl/ref",
+        "topic": "ctrl/ref",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "541a4b79",
+        "x": 900,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "c5b01b17",
+        "type": "comment",
+        "z": "35ad271e",
+        "name": "Before deploying: edit MQTT broker host/credentials. Reference input and plant chart use 0–20; controller output chart auto-scales.",
+        "info": "",
+        "x": 440,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "541a4b79",
+        "type": "mqtt-broker",
+        "name": "Mosquitto Broker ESP32",
+        "broker": "127.0.0.1",
+        "port": "1883",
+        "clientid": "nodered-esp32-dashboard",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "1387a5f8",
+        "type": "ui-group",
+        "name": "Controller",
+        "page": "192097cb",
+        "width": "6",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "f2cbbd43",
+        "type": "ui-group",
+        "name": "Plant Response",
+        "page": "192097cb",
+        "width": "6",
+        "height": "1",
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "983cc445",
+        "type": "ui-group",
+        "name": "Expanded State Vector",
+        "page": "192097cb",
+        "width": "12",
+        "height": "1",
+        "order": 3,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "192097cb",
+        "type": "ui-page",
+        "name": "Control System",
+        "ui": "64fb0924",
+        "path": "/control",
+        "icon": "dashboard",
+        "layout": "grid",
+        "theme": "39f22e53",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": 0,
+                "cols": 3
+            },
+            {
+                "name": "Tablet",
+                "px": 576,
+                "cols": 6
+            },
+            {
+                "name": "Desktop",
+                "px": 768,
+                "cols": 12
+            }
+        ],
+        "order": 1
+    },
+    {
+        "id": "64fb0924",
+        "type": "ui-base",
+        "name": "ESP32 Dashboard",
+        "path": "/dashboard",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "navigationStyle": "default"
+    },
+    {
+        "id": "39f22e53",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#1976d2",
+            "bgPage": "#f4f6f8",
+            "groupBg": "#ffffff",
+            "groupOutline": "#d9dfe5"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "9eb27977ea286f96",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@flowfuse/node-red-dashboard": "1.33.0"
+        }
+    }
+]

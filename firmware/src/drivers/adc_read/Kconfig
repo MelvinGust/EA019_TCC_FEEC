@@ -1,0 +1,24 @@
+menu "Plant Module Configuration"
+
+    config ADC_READ_STACK_SIZE
+        int "ADC READ stack size"
+        range 1024 16384
+        default 4096
+        help
+            Defines stack size for ADC task.
+
+    config ADC_READ_TASK_PRIORITY
+        int "ADC READ task priority"
+        range 1 10
+        default 10
+        help
+            Defines task priority for the data ADC READ task.
+
+    config ADC_READ_DEBUG_LOG_ENABLED
+        bool "ADC READ debug log flag"
+        default n
+        help
+            If true, enables ESP logging with verbosity DEBUG.
+    
+
+endmenu

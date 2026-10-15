@@ -18,6 +18,7 @@
 #include "sdkconfig.h"
 #include "plant.h"
 #include "utils.h"
+#include "adc_read.h"
 #include "mqtt_client.h"
 
 #include "protocol_examples_common.h"
@@ -50,10 +51,10 @@
 const float y_mb = 0.095;
 const float y_bm = 0.03;
 const float y_bo = 0.095;
-const float y_ob = 0.04;
-const float u_m = 0.15;
+// const float y_ob = 0.04;
+// const float u_m = 0.15;
 const float u_b = 0.2;
-const float u_o = 0.12;
+// const float u_o = 0.12;
 const float D_m = 0.01;
 const float c_m = 0.0;
 const float c_b = 0.0;
@@ -74,6 +75,7 @@ typedef struct {
     SemaphoreHandle_t mqtt_mutex;
     SemaphoreHandle_t internals_mutex;
     esp_timer_handle_t mqtt_timer_handle;
+    esp_timer_handle_t plant_internals_timer_handle;
 
     // For MQTT processing
     esp_mqtt_client_handle_t mqtt_client;
@@ -84,6 +86,11 @@ typedef struct {
     uint64_t internal_counter; // To be used for the message we are sending
     uint64_t msg_counter; // To interpret the message we are receiving
     uint64_t last_msg_counter;
+
+    // For internal state variation
+    float y_ob;
+    float u_m;
+    float u_o;
 } system_data_t;
 
 typedef struct {
@@ -122,17 +129,34 @@ static void mqtt_timer_callback(void *arg)
             "{\"y\":%.3f,\"x_b\":%.3f,\"x_m\":%.3f,\"x_o\":%.3f}",
             mqtt_data.y, mqtt_data.x.b, mqtt_data.x.m, mqtt_data.x.o);
         xSemaphoreGive(local_data.mqtt_mutex);
+
+        esp_mqtt_client_publish(local_data.mqtt_client, "plant/state", mqtt_msg, len, 1, 0);
     }
-    esp_mqtt_client_publish(local_data.mqtt_client, "plant/state", mqtt_msg, len, 1, 0);
 
     // Publish data onto the internals topic
     if(xSemaphoreTake(local_data.internals_mutex, portMAX_DELAY) == pdTRUE)
     {
-        len = snprintf(internals_msg, sizeof(internals_msg)," {\"ref\":%3f}", local_data.r);
+        len = snprintf(internals_msg, sizeof(internals_msg),
+            "{\"y_ob\":%.3f,\"u_m\":%.3f,\"u_o\":%.3f}",
+            local_data.y_ob, local_data.u_m, local_data.u_o);
+        xSemaphoreGive(local_data.internals_mutex);
+
+        esp_mqtt_client_publish(local_data.mqtt_client, "plant/internals", internals_msg, len, 1, 0);
+    }
+}
+
+static void plant_internals_callback(void *arg){
+    // Update the internal plant state according to the voltage values read by the potentiometer
+    if(xSemaphoreTake(local_data.internals_mutex, portMAX_DELAY) == pdTRUE)
+    {
+        local_data.y_ob = (float)(0.003 / 4095.0) * adc_chan4_read() + (float)(0.037);
+        local_data.u_m = (float)(0.1 / 4095.0) * adc_chan6_read() + (float)(0.1);
+        local_data.u_o = (float)(0.05 / 4095.0) * adc_chan7_read() + (float)(0.1);
         xSemaphoreGive(local_data.internals_mutex);
     }
-    esp_mqtt_client_publish(local_data.mqtt_client, "plant/internals", ref_msg, len, 1, 0);
+    
 }
+
 
 /**
  * @brief 
@@ -201,6 +225,11 @@ esp_err_t plant_init(void)
 
     /* Local data initialization */
 
+    // Initilize with dummy data
+    local_data.y_ob = 0.04;
+    local_data.u_m = 0.15;
+    local_data.u_o = 0.12;
+
     // Initialize buffer
     local_data.rx_len = 0;
 
@@ -228,13 +257,25 @@ esp_err_t plant_init(void)
         ESP_LOGE(TAG, "Failed to initialize MQTT plugin");
     }
 
-    // TODO Init ADC
+    //  Init ADC
+    esp_err = adc_read_init();
+    if(esp_err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize the ADC peripheral");
+    }
 
     // Create MQTT publisher timer
     const esp_timer_create_args_t timer_args = {.callback = &mqtt_timer_callback, .name = "mqtt_publisher_timer"};
     esp_err = esp_timer_create(&timer_args, &local_data.mqtt_timer_handle);
     if (esp_err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to config mqtt timer");
+        return esp_err;
+    }
+
+    // Create plant internals timer
+    const esp_timer_create_args_t internals_timer_args = {.callback = &plant_internals_callback, .name = "plant_internals_timer"};
+    esp_err = esp_timer_create(&internals_timer_args, &local_data.plant_internals_timer_handle);
+    if (esp_err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to config plant internals timer");
         return esp_err;
     }
 
@@ -258,6 +299,13 @@ esp_err_t plant_init(void)
     esp_err = esp_timer_start_periodic(local_data.mqtt_timer_handle, HZ_TO_US(CONFIG_PUBLISH_FREQUENCY));
     if (esp_err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to start MQTT publisher timer");
+        return esp_err;
+    }
+
+    // Start the Plant internals update timer. Every tick updates the variable plant parameters according to the values read from the ADC.
+        esp_err = esp_timer_start_periodic(local_data.plant_internals_timer_handle, HZ_TO_US(10));
+    if (esp_err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to start plant internals update timer");
         return esp_err;
     }
 
@@ -557,9 +605,9 @@ static void uart_process_task(void *pvParameters)
 
                 // Process the received data (x = A*x_prev + B*u and y = C*x)
                 // Get x[k+1]
-                local_data.x_fut.m = (1.0-y_mb-u_m)*local_data.x.m + (y_bm)*local_data.x.b + (D_m)*pkt.u;
-                local_data.x_fut.b = (y_mb)*local_data.x.m + (1.0-y_bo-y_bm-u_b)*local_data.x.b + (y_ob)*local_data.x.o;
-                local_data.x_fut.o = y_bo*local_data.x.b + (1.0-y_ob-u_o)*local_data.x.o;
+                local_data.x_fut.m = (1.0-y_mb-local_data.u_m)*local_data.x.m + (y_bm)*local_data.x.b + (D_m)*pkt.u;
+                local_data.x_fut.b = (y_mb)*local_data.x.m + (1.0-y_bo-y_bm-u_b)*local_data.x.b + (local_data.y_ob)*local_data.x.o;
+                local_data.x_fut.o = y_bo*local_data.x.b + (1.0-local_data.y_ob-local_data.u_o)*local_data.x.o;
 
                 // Get y[k] (Since the other values are zeroed, DONT calculate them)
                 float y;
