@@ -72,6 +72,7 @@ typedef struct {
 
     // For FreeRTOS or ESPIDF
     SemaphoreHandle_t mqtt_mutex;
+    SemaphoreHandle_t internals_mutex;
     esp_timer_handle_t mqtt_timer_handle;
 
     // For MQTT processing
@@ -111,18 +112,26 @@ static void uart_process_task(void *pvParameters);
 static void mqtt_timer_callback(void *arg)
 {
     char mqtt_msg[128];
-
-    // TODO Update timestamp for the messages
+    char internals_msg[128];
+    int len;
 
     // Publish data onto the state topic
     if(xSemaphoreTake(local_data.mqtt_mutex, portMAX_DELAY) == pdTRUE)
     {
-        snprintf(mqtt_msg, sizeof(mqtt_msg),
+        len = snprintf(mqtt_msg, sizeof(mqtt_msg),
             "{\"y\":%.3f,\"x_b\":%.3f,\"x_m\":%.3f,\"x_o\":%.3f}",
             mqtt_data.y, mqtt_data.x.b, mqtt_data.x.m, mqtt_data.x.o);
-        esp_mqtt_client_enqueue(local_data.mqtt_client, "plant/state", mqtt_msg, sizeof(mqtt_msg), 1, 0, false);
         xSemaphoreGive(local_data.mqtt_mutex);
     }
+    esp_mqtt_client_publish(local_data.mqtt_client, "plant/state", mqtt_msg, len, 1, 0);
+
+    // Publish data onto the internals topic
+    if(xSemaphoreTake(local_data.internals_mutex, portMAX_DELAY) == pdTRUE)
+    {
+        len = snprintf(internals_msg, sizeof(internals_msg)," {\"ref\":%3f}", local_data.r);
+        xSemaphoreGive(local_data.internals_mutex);
+    }
+    esp_mqtt_client_publish(local_data.mqtt_client, "plant/internals", ref_msg, len, 1, 0);
 }
 
 /**
@@ -139,35 +148,35 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     switch ((esp_mqtt_event_id_t)event_id) 
     {
         case MQTT_EVENT_CONNECTED:
-            ESP_LOGD(TAG, "MQTT_EVENT_CONNECTED");
+            ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
             break;
 
         case MQTT_EVENT_DISCONNECTED:
-            ESP_LOGD(TAG, "MQTT_EVENT_DISCONNECTED");
+            ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
             break;
 
         case MQTT_EVENT_SUBSCRIBED:
-            ESP_LOGD(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d, return code=0x%02x ", event->msg_id, (uint8_t)*event->data);
+            ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d, return code=0x%02x ", event->msg_id, (uint8_t)*event->data);
             break;
 
         case MQTT_EVENT_UNSUBSCRIBED:
-            ESP_LOGD(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
+            ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
             break;
 
         case MQTT_EVENT_PUBLISHED:
-            ESP_LOGD(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
+            ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
             break;
 
         case MQTT_EVENT_DATA:
-            ESP_LOGD(TAG, "MQTT_EVENT_DATA");
+            ESP_LOGI(TAG, "MQTT_EVENT_DATA");
             break;
 
         case MQTT_EVENT_ERROR:
-            ESP_LOGD(TAG, "MQTT_EVENT_ERROR");
+            ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
             break;
 
         default:
-            ESP_LOGD(TAG, "Other event id:%d", event->event_id);
+            ESP_LOGI(TAG, "Other event id:%d", event->event_id);
             break;
     }
 }
@@ -186,7 +195,7 @@ esp_err_t plant_init(void)
     esp_err_t esp_err = ESP_OK;
     BaseType_t ret_code = pdPASS;
 
-    #ifndef CONFIG_PLANT_DEBUG_LOG_ENABLED
+    #ifdef CONFIG_PLANT_DEBUG_LOG_ENABLED
        esp_log_level_set(TAG, ESP_LOG_ERROR);
     #endif
 
@@ -415,7 +424,7 @@ static void uart_rx_task(void *pvParameters)
         if (pdTRUE == xQueueReceive(local_data.uart_event_queue, (void *)&event, pdMS_TO_TICKS(1000))) {
             
             // Received UART data
-            ESP_LOGI(TAG, "Received UART data, with event type: %d", event.type);
+            ESP_LOGV(TAG, "Received UART data, with event type: %d", event.type);
 
             // Depending on the event received, perform a different action.
             switch(event.type){
@@ -538,7 +547,7 @@ static void uart_process_task(void *pvParameters)
         if (xQueueReceive(local_data.internal_data_queue, &pkt, pdMS_TO_TICKS(1000)) == pdTRUE){
             
             // Only process if the received data is new
-            ESP_LOGD(TAG, "Received data from controller: counter=%llu, u=%f", pkt.counter, pkt.u);
+            ESP_LOGV(TAG, "Received data from controller: counter=%llu, u=%f", pkt.counter, pkt.u);
             local_data.msg_counter = pkt.counter;
 
             if(local_data.msg_counter != local_data.last_msg_counter)
@@ -558,6 +567,16 @@ static void uart_process_task(void *pvParameters)
 
                 // Update our internal state variables
                 local_data.x = local_data.x_fut;
+
+
+                if(xSemaphoreTake(local_data.mqtt_mutex, pdMS_TO_TICKS(10)) == pdTRUE)
+                {
+                    mqtt_data.x.b = local_data.x.b;
+                    mqtt_data.x.m = local_data.x.m;
+                    mqtt_data.x.o = local_data.x.o;
+                    mqtt_data.y = y;
+                    xSemaphoreGive(local_data.mqtt_mutex);
+                }
 
                 // Send the output data back to the controller via UART
                 int len;
