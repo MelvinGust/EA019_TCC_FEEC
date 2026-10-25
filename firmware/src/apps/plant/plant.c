@@ -241,6 +241,7 @@ esp_err_t plant_init(void)
     // Initialize freeRTOS entities
     local_data.internal_data_queue = xQueueCreate(5, sizeof(received_pkt_t));
     local_data.mqtt_mutex = xSemaphoreCreateMutex();
+    local_data.internals_mutex = xSemaphoreCreateMutex();
 
     /* Peripheral Initialization */
 
@@ -611,7 +612,13 @@ static void uart_process_task(void *pvParameters)
 
                 // Get y[k] (Since the other values are zeroed, DONT calculate them)
                 float y;
-                y = c_o*local_data.x.o;
+                float temp_y;
+                temp_y = c_o*local_data.x.o;
+                if(temp_y > 0){
+                    y = temp_y;
+                } else {
+                    y = 0.0;
+                }
 
                 // Update our internal state variables
                 local_data.x = local_data.x_fut;

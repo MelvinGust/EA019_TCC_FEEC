@@ -134,7 +134,13 @@ static void controller_timer_callback(void *arg)
 
     // Calculate control output (u[k] = K_p*y[k]+K_i*x_i[k])
     float u;
-    u = (local_data.K_p)*temp_y + local_data.K_i*temp_x_i;
+    float temp_u;
+    temp_u = (local_data.K_p)*temp_y + local_data.K_i*temp_x_i;
+    if (temp_u > 0.0){
+        u = temp_u;
+    } else {
+        u = 0.0;
+    }
 
     // Update x[k] for next iteration
     local_data.x_i = local_data.x_i_fut;
@@ -231,10 +237,30 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
         case MQTT_EVENT_DATA:
             ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-            if(xSemaphoreTake(local_data.r_mutex, portMAX_DELAY) == pdTRUE)
             {
-                local_data.r = (float)(*event->data);
-                xSemaphoreGive(local_data.r_mutex);
+                char *str = malloc(event->data_len + 1);
+
+                if (str == NULL) {
+                    ESP_LOGE(TAG, "Failed to allocate MQTT payload buffer");
+                    return;
+                }
+
+                memcpy(str, event->data, event->data_len);
+                str[event->data_len] = '\0';
+
+                char *endptr;
+                float temp_r = strtof(str, &endptr);
+
+                if (str != endptr && *endptr == '\0') {
+                    if (xSemaphoreTake(local_data.r_mutex, portMAX_DELAY) == pdTRUE) {
+                        local_data.r = temp_r;
+                        xSemaphoreGive(local_data.r_mutex);
+                    }
+                } else {
+                    ESP_LOGE(TAG, "Invalid number. Not updating reference.");
+                }
+
+                free(str);
             }
             ESP_LOGI(TAG, "TOPIC=%.*s\r\n", event->topic_len, event->topic);
             ESP_LOGI(TAG, "DATA=%.*s\r\n", event->data_len, event->data);

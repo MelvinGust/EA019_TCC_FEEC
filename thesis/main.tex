@@ -1,0 +1,669 @@
+\documentclass[12pt,a4paper]{article}
+
+% ------------------------------------------------------------
+% PACOTES
+% ------------------------------------------------------------
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+\usepackage{cite}
+\usepackage{url}
+
+\usepackage{geometry}
+\geometry{
+    a4paper,
+    left=3cm,
+    right=2cm,
+    top=3cm,
+    bottom=2cm
+}
+
+\usepackage{setspace}
+\usepackage{indentfirst}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{listings}
+
+% ------------------------------------------------------------
+% CONFIGURAÇÕES
+% ------------------------------------------------------------
+
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+\onehalfspacing
+
+% ------------------------------------------------------------
+% INFORMAÇÕES DO TRABALHO
+% ------------------------------------------------------------
+
+\title{
+    \textbf{Controle e rastreamento de sistemas farmacocinéticos}
+}
+
+\author{
+    Melvin Gustavo Maradiaga Elvir
+}
+
+\date{
+    Campinas\\
+    2026
+}
+
+% ------------------------------------------------------------
+% DOCUMENTO
+% ------------------------------------------------------------
+
+\begin{document}
+
+% FOLHA DE ROSTO
+% ============================================================
+
+\begin{titlepage}
+
+\begin{center}
+
+{\large
+UNIVERSIDADE ESTADUAL DE CAMPINAS
+}
+
+\vspace{0.3cm}
+
+{\large
+FACULDADE DE ENGENHARIA ELÉTRICA E DE COMPUTAÇÃO
+}
+
+\vfill
+
+{\large
+MELVIN GUSTAVO MARADIAGA ELVIR
+}
+
+\vfill
+
+{\Large
+\textbf{Controle e rastreamento de sistemas farmacocinéticos}
+}
+
+{\large
+<Link do video>
+}
+
+
+\vspace{1cm}
+
+\begin{flushright}
+\begin{minipage}{0.55\textwidth}
+Trabalho apresentado como requisito para
+conclusão do curso de Engenharia Elétrica,
+sob orientação da Prof(a). Dr(a). Cecília de
+Freitas Morais.
+\end{minipage}
+\end{flushright}
+
+\vfill
+
+Campinas\\
+2026
+
+\end{center}
+
+\end{titlepage}
+
+% ============================================================
+% DEDICATÓRIA
+% ============================================================
+
+\section*{Dedicatória}
+
+% Opcional.
+
+\newpage
+
+% ============================================================
+% AGRADECIMENTOS
+% ============================================================
+
+\section*{Agradecimentos}
+
+% Escrever posteriormente.
+
+\newpage
+
+% ============================================================
+% RESUMO
+% ============================================================
+
+\section*{Resumo}
+
+% Escrever posteriormente.
+%
+% O resumo deve apresentar:
+% - contexto/problema;
+% - objetivo;
+% - metodologia;
+% - principais resultados;
+% - conclusão.
+%
+% Evitar referências bibliográficas no resumo.
+
+\vspace{0.5cm}
+
+\noindent
+\textbf{Palavras-chave:} controle robusto; desigualdades matriciais
+lineares; farmacocinética; sistemas ciberfísicos médicos;
+sistemas embarcados.
+
+\newpage
+
+% ============================================================
+% ABSTRACT
+% ============================================================
+
+\section*{Abstract}
+
+% Escrever posteriormente.
+
+\vspace{0.5cm}
+
+\noindent
+\textbf{Keywords:} robust control; linear matrix inequalities;
+pharmacokinetics; medical cyber-physical systems;
+embedded systems.
+
+\newpage
+
+% ============================================================
+% SUMÁRIO
+% ============================================================
+
+\tableofcontents
+
+\newpage
+
+% ============================================================
+% 1. INTRODUÇÃO
+% ============================================================
+
+\section{Introdução}
+
+Os sistemas ciberfísicos \cite{lee2017embedded} são uma integração da computação com processos físicos, trabalhando
+na interseção entre componentes cibernéticos, como os microcontroladores, e elementos que
+interagem com o mundo físico, como sensores e atuadores. Eles têm sido implementados no
+desenvolvimento de diversos projetos, variando em complexidade, até chegar a sistemas
+inovadores, como veículos autônomos, infraestruturas críticas inteligentes e, nos últimos anos,
+sistemas médicos ciberfísicos (MCPS) \cite{dey2018medical}. Com o avanço da biomedicina, o interesse no
+desenvolvimento de MCPS tem crescido, impulsionando a implementação de tecnologias de controle
+para ``fechar a malha'' (realimentar o sistema com sinais fisiológicos) e criar dispositivos
+auto-regulados, como o pâncreas artificial \cite{brown2019six}, e controladores para reanimação volêmica em casos
+de hipovolemia \cite{kramer2008closed}. Dentro deste contexto, a administração automatizada de medicamentos, na qual
+algoritmos de controle são empregados para ajustar continuamente a dosagem administrada ao
+paciente, se torna uma das aplicações mais promissoras dos MCPS.
+
+Nesse cenário, o campo da farmacologia clínica é de especial interesse devido ao potencial que os
+MCPS possuem para aumentar a eficácia terapêutica e diminuir os riscos associados à
+administração inadequada de medicamentos. A área de farmacocinética, que estuda a concentração
+de medicamentos no organismo em função de tempo e dose \cite{bailey2005drug}, facilita o desenvolvimento de tais
+dispositivos através dos modelos farmacocinéticos compartimentais. Baseando-se neles, diversas
+estratégias de controle têm sido propostas \cite{gholami2013optimal,nogueira2016positive,padmanabhan2019optimal}
+para administração automatizada de medicamentos.
+Uma alternativa de projeto para garantir a automatização do rastreamento de referências em
+administração farmacológica seria adotar técnicas de controle robusto baseadas em programação
+convexa, mediante o uso de desigualdades matriciais lineares (LMIs), para o projeto de
+controladores, como feito em \cite{marcomini2025projeto}. A vantagem de empregar LMIs é a possibilidade de tratar sistemas
+afetados por incertezas paramétricas e variantes no tempo, ou seja, o rastreador projetado seria
+válido mesmo que a modelagem fisiológica do indivíduo não fosse precisa ou sofresse pequenas
+variações ao longo do tempo. Contudo, a validação das estratégias de controle tem sido realizada
+predominantemente em ambientes de simulação. Para aproximar os resultados obtidos de
+condições reais de operação, plataformas físicas de emulação têm sido desenvolvidas para a
+validação dos controladores, tanto através de circuitos eletrônicos \cite{costa2024designing} quanto por meio de sistemas
+embarcados \cite{desouza2025embedded}.
+
+
+% ============================================================
+% 2. OBJETIVOS
+% ============================================================
+
+\section{Objetivos}
+
+\subsection{Objetivo geral}
+
+% Formular aqui o objetivo geral do trabalho.
+
+
+\subsection{Objetivos específicos}
+
+% Listar os objetivos específicos.
+
+\begin{itemize}
+
+    \item Selecionar e implementar um modelo farmacocinético
+    adequado para representar a dinâmica de absorção e
+    distribuição do fármaco;
+
+    \item Formular o problema de rastreamento de referência
+    considerando incertezas paramétricas;
+
+    \item Projetar um controlador/rastreador robusto utilizando
+    condições baseadas em desigualdades matriciais lineares
+    (LMIs);
+
+    \item Validar o controlador por meio de simulações
+    computacionais em Matlab/Simulink;
+
+    \item Implementar o modelo da planta em uma plataforma
+    embarcada;
+
+    \item Implementar o controlador em um segundo
+    microcontrolador;
+
+    \item Desenvolver a comunicação entre os dispositivos;
+
+    \item Realizar a emulação da malha fechada;
+
+    \item Comparar os resultados obtidos experimentalmente
+    com os resultados obtidos por simulação;
+
+    \item Avaliar o comportamento do sistema diante de
+    diferentes referências e condições de incerteza.
+
+\end{itemize}
+
+
+% ============================================================
+% 3. FUNDAMENTAÇÃO TEÓRICA
+% ============================================================
+
+\section{Fundamentação Teórica}
+
+% Este capítulo apresenta os conceitos necessários para que
+% o leitor compreenda o desenvolvimento do trabalho.
+%
+% Evitar apresentar aqui resultados próprios.
+% A ideia é construir a base teórica utilizada posteriormente.
+
+
+\subsection{Sistemas ciberfísicos médicos}
+
+% Definição de CPS e MCPS.
+%
+% Relacionar computação, sensores, atuadores e processos físicos.
+%
+% Apresentar exemplos de aplicações médicas de controle
+% em malha fechada.
+
+
+\subsection{Farmacocinética e modelos compartimentais}
+
+% Explicar:
+% - conceito de farmacocinética;
+% - concentração do fármaco;
+% - compartimentos;
+% - entrada de medicamento;
+% - dinâmica de absorção/distribuição;
+% - modelo utilizado no trabalho.
+
+
+\subsection{Modelagem em espaço de estados}
+
+% Apresentar:
+%
+% \begin{equation}
+%     \dot{x}(t) = Ax(t) + Bu(t)
+% \end{equation}
+%
+% \begin{equation}
+%     y(t) = Cx(t) + Du(t)
+% \end{equation}
+%
+% Explicar o significado das matrizes e estados.
+
+
+\subsection{Controle e rastreamento de referência}
+
+% Introduzir:
+% - controle em malha fechada;
+% - estabilidade;
+% - erro de rastreamento;
+% - referência;
+% - realimentação.
+
+
+\subsection{Incertezas paramétricas}
+
+% Explicar por que os parâmetros do modelo farmacocinético
+% podem apresentar incertezas.
+%
+% Definir como essas incertezas serão representadas
+% matematicamente no trabalho.
+
+
+\subsection{Desigualdades matriciais lineares}
+
+% Apresentar o conceito de LMI.
+%
+% Explicar sua utilização na formulação de problemas
+% de controle convexo.
+%
+% Apresentar somente a teoria necessária para compreender
+% o projeto desenvolvido posteriormente.
+
+
+\subsection{Controle robusto}
+
+% Explicar o conceito de robustez.
+%
+% Relacionar:
+%
+% incerteza do modelo
+%       ↓
+% conjunto de modelos possíveis
+%       ↓
+% controlador robusto
+%       ↓
+% garantia de estabilidade/desempenho.
+
+
+\subsection{Implementação embarcada e Hardware-in-the-Loop}
+
+% Apresentar o conceito de Hardware-in-the-Loop utilizado
+% neste trabalho.
+%
+% Explicar a separação entre:
+% - dispositivo responsável pela planta;
+% - dispositivo responsável pelo controlador;
+% - comunicação entre os dispositivos.
+
+
+% ============================================================
+% 4. METODOLOGIA
+% ============================================================
+
+\section{Metodologia}
+
+% Este capítulo deve explicar COMO o trabalho foi realizado.
+
+
+\subsection{Modelo farmacocinético utilizado}
+
+% Apresentar o modelo escolhido.
+%
+% Equações diferenciais.
+% Estados.
+% Entradas.
+% Saídas.
+% Parâmetros.
+
+
+\subsection{Formulação do problema de controle}
+
+% Definir matematicamente:
+% - planta;
+% - referência;
+% - erro;
+% - variável de controle;
+% - requisitos de desempenho.
+
+
+\subsection{Modelagem das incertezas}
+
+% Mostrar como os parâmetros incertos serão representados.
+
+
+\subsection{Projeto do rastreador robusto}
+
+% Apresentar a estratégia de projeto.
+%
+% Não apenas mostrar o resultado:
+% explicar a sequência matemática que leva às LMIs.
+
+
+\subsection{Formulação das condições LMIs}
+
+% Apresentar as LMIs utilizadas no projeto.
+%
+% Mostrar as variáveis de decisão.
+% Mostrar as restrições.
+% Explicar como a solução é obtida.
+
+
+\subsection{Simulação computacional}
+
+% Descrever:
+% - Matlab;
+% - Simulink, se utilizado;
+% - condições iniciais;
+% - referências;
+% - valores dos parâmetros;
+% - cenários de incerteza;
+% - métricas avaliadas.
+
+
+\subsection{Arquitetura da plataforma embarcada}
+
+% Inserir uma figura da arquitetura geral.
+%
+% Exemplo:
+%
+% Microcontrolador 1
+%      ↓
+% Emulação da planta
+%      ↓
+% Comunicação
+%      ↓
+% Microcontrolador 2
+%      ↓
+% Controlador
+%      ↓
+% Ação de controle
+%      ↺
+
+
+\subsection{Implementação nos microcontroladores}
+
+% Descrever:
+% - microcontroladores utilizados;
+% - linguagem;
+% - bibliotecas;
+% - frequência de execução;
+% - representação numérica;
+% - comunicação.
+
+
+\subsection{Procedimento de validação}
+
+% Explicar como os experimentos foram realizados.
+%
+% Definir os cenários de teste e os critérios utilizados
+% para comparação com a simulação.
+
+
+% ============================================================
+% 5. DESENVOLVIMENTO E IMPLEMENTAÇÃO
+% ============================================================
+
+\section{Desenvolvimento e Implementação}
+
+% Aqui começa efetivamente o desenvolvimento do seu projeto.
+
+
+\subsection{Implementação do modelo da planta}
+
+% Mostrar como o modelo matemático foi transformado
+% em algoritmo executável.
+
+
+\subsection{Implementação do controlador}
+
+% Mostrar como o controlador obtido pelas LMIs foi
+% implementado na plataforma embarcada.
+
+
+\subsection{Implementação da comunicação}
+
+% Descrever o protocolo e a estrutura dos dados trocados.
+
+
+\subsection{Integração da malha fechada}
+
+% Mostrar o sistema completo funcionando.
+%
+% Planta → comunicação → controlador → ação de controle.
+
+
+\subsection{Plataforma experimental}
+
+% Fotos, diagrama elétrico, arquitetura e características
+% do hardware.
+
+
+\subsection{Execução dos ensaios}
+
+% Descrever os testes efetivamente realizados.
+
+
+% ============================================================
+% 6. RESULTADOS E DISCUSSÃO
+% ============================================================
+
+\section{Resultados e Discussão}
+
+
+\subsection{Resultados da síntese do controlador}
+
+% Mostrar:
+% - solução das LMIs;
+% - ganhos obtidos;
+% - parâmetros relevantes;
+% - condições de projeto.
+
+
+\subsection{Resultados de simulação}
+
+% Gráficos:
+% - referência × saída;
+% - erro;
+% - ação de controle;
+% - estados;
+% - diferentes condições de incerteza.
+
+
+\subsection{Resultados da implementação embarcada}
+
+% Apresentar os resultados obtidos no hardware.
+
+
+\subsection{Comparação entre simulação e emulação}
+
+% Comparar quantitativamente:
+%
+% Simulação × Hardware
+%
+% Erro de rastreamento
+% Tempo de resposta
+% Sobressinal, se aplicável
+% Ação de controle
+% Comportamento diante das incertezas
+
+
+\subsection{Análise da robustez}
+
+% Testar diferentes valores dos parâmetros incertos.
+%
+% Mostrar se o comportamento esperado do controlador
+% permanece válido.
+
+
+\subsection{Limitações e considerações práticas}
+
+% Discutir:
+% - limitações do modelo;
+% - limitações do hardware;
+% - limitações da comunicação;
+% - limitações computacionais;
+% - diferenças entre simulação e sistema embarcado.
+
+
+% ============================================================
+% 7. CONCLUSÃO
+% ============================================================
+
+\section{Conclusão}
+
+% Retomar:
+% - problema;
+% - objetivo;
+% - metodologia;
+% - principais resultados;
+% - contribuição do trabalho.
+%
+% Não introduzir resultados que não tenham sido apresentados
+% anteriormente.
+
+
+\subsection{Trabalhos futuros}
+
+% Possíveis extensões:
+% - comunicação remota;
+% - implementação em hardware mais próximo de uma aplicação real;
+% - novos modelos farmacocinéticos;
+% - outras estratégias de controle;
+% - testes com maior variedade de incertezas;
+% - integração com sistemas de monitoramento.
+
+
+% ============================================================
+% REFERÊNCIAS
+% ============================================================
+
+\section{Referências}
+
+
+
+% Inicialmente você pode inserir as referências manualmente.
+%
+% Posteriormente, recomendo migrar para BibTeX/BibLaTeX
+% para facilitar a organização.
+
+
+% ============================================================
+% APÊNDICE
+% ============================================================
+
+\appendix
+
+\section{Código do controlador}
+
+% Inserir posteriormente, se necessário.
+
+
+\section{Código da implementação embarcada}
+
+% Inserir posteriormente, se necessário.
+
+
+% ============================================================
+% ANEXO
+% ============================================================
+
+\section{Materiais complementares}
+
+% Documentos, tabelas, informações externas etc.
+
+
+\end{document}

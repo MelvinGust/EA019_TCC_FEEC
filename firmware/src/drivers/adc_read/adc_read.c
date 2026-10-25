@@ -45,6 +45,7 @@
 // Convenient macros
 #define CONVERSION_RESULTS_PER_FRAME 128
 #define MAX_STORAGE_BUFFER_SIZE 2U*CONVERSION_RESULTS_PER_FRAME*SOC_ADC_DIGI_DATA_BYTES_PER_CONV
+#define MAX_PARSED_SAMPLES (MAX_STORAGE_BUFFER_SIZE / SOC_ADC_DIGI_RESULT_BYTES)
 
 /* Data structures */
 typedef struct {
@@ -57,6 +58,11 @@ typedef struct {
     TaskHandle_t adc_read_task_handle;
 
     // For ADC processing
+    uint8_t adc_data_buffer[MAX_STORAGE_BUFFER_SIZE];
+    adc_continuous_data_t parsed_data_buffer[MAX_PARSED_SAMPLES];
+    uint32_t read_raw[ADC_CHANNEL_10 + 1];
+    uint32_t read_count[ADC_CHANNEL_10 + 1];
+    uint32_t avg_read_raw[ADC_CHANNEL_10 + 1];
     uint32_t adc_output_chan4;
     uint32_t adc_output_chan6;
     uint32_t adc_output_chan7;
@@ -99,6 +105,8 @@ esp_err_t adc_read_init(void)
     #ifdef CONFIG_ADC_READ_DEBUG_LOG_ENABLED
         esp_log_level_set(TAG, ESP_LOG_VERBOSE);
     #endif
+
+    esp_log_level_set(TAG, ESP_LOG_ERROR);
 
     /* Local data initialization */
 
@@ -175,13 +183,7 @@ static void adc_read_task(void *pvParameters)
     esp_err_t esp_err = ESP_OK;
 
     //* ADC Conversion Variables
-    uint8_t adc_data_buffer[800];
     uint32_t rxLen = 0; // Stores real length of conversion results read via adc_continuous_read().
-
-    //* ADC Average Variables
-    uint32_t read_raw[ADC_CHANNEL_10 + 1] = {0}; // Getting "ADC_CHANNEL_10 (because its an enum) + 1" elements
-    uint32_t read_count[ADC_CHANNEL_10 + 1] = {0};
-    uint32_t avg_read_raw[ADC_CHANNEL_10 + 1] = {0};
 
     /* ADC Continuous Init */
     continuous_adc_init(local_data.channel_list, sizeof(local_data.channel_list) / sizeof(adc_channel_t), &local_data.adc1_handle);
@@ -199,16 +201,14 @@ static void adc_read_task(void *pvParameters)
         ESP_LOGE(TAG, "Failed to start ADC");
    }
 
-    ESP_LOGD(TAG, "Initialized Angle Sensor.");
-
     while (true)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // Wait until a conversion frame is ready
 
-        esp_err = adc_continuous_read(local_data.adc1_handle, adc_data_buffer, MAX_STORAGE_BUFFER_SIZE, &rxLen, 0);
-        memset(read_raw, 0, sizeof(read_raw));
-        memset(read_count, 0, sizeof(read_count));
-        memset(avg_read_raw, 0, sizeof(avg_read_raw));
+        esp_err = adc_continuous_read(local_data.adc1_handle, local_data.adc_data_buffer, MAX_STORAGE_BUFFER_SIZE, &rxLen, 0);
+        memset(local_data.read_raw, 0, sizeof(local_data.read_raw));
+        memset(local_data.read_count, 0, sizeof(local_data.read_count));
+        memset(local_data.avg_read_raw, 0, sizeof(local_data.avg_read_raw));
         // ESP_LOGD(TAG, "ret is [%x], rxLEN is [%" PRIu32"]", ret, rxLen);
 
         if (esp_err == ESP_OK)
@@ -217,17 +217,18 @@ static void adc_read_task(void *pvParameters)
             uint32_t num_parsed_samples = 0;
 
             // Parse our received data
-            esp_err_t parse_ret = adc_continuous_parse_data(local_data.adc1_handle, adc_data_buffer, rxLen, parsed_data_buffer, &num_parsed_samples);
+            esp_err_t parse_ret = adc_continuous_parse_data(local_data.adc1_handle, local_data.adc_data_buffer, rxLen, local_data.parsed_data_buffer, &num_parsed_samples);
+            // ESP_LOGE(TAG, "Parsed ADC Data");
             if(parse_ret == ESP_OK){
                 for (int i = 0; i < num_parsed_samples; i++)
                 {
-                    if(parsed_data_buffer[i].valid){
+                    if(local_data.parsed_data_buffer[i].valid){
                         // ESP_LOGI(TAG, "ADC%d, Channel: %d, Value: %"PRIu32, parsed_data[i].unit + 1, parsed_data[i].channel, parsed_data[i].raw_data);
-                        adc_channel_t adc_chan = parsed_data_buffer[i].channel;
-                        read_raw[adc_chan] += parsed_data_buffer[i].raw_data;
-                        read_count[adc_chan] += 1;
+                        adc_channel_t adc_chan = local_data.parsed_data_buffer[i].channel;
+                        local_data.read_raw[adc_chan] += local_data.parsed_data_buffer[i].raw_data;
+                        local_data.read_count[adc_chan] += 1;
                     } else {
-                    ESP_LOGW(TAG, "Invalid data [ADC%d_Ch%d_%"PRIu32"]", parsed_data_buffer[i].unit + 1, parsed_data_buffer[i].channel, parsed_data_buffer[i].raw_data);
+                    ESP_LOGW(TAG, "Invalid data [ADC%d_Ch%d_%"PRIu32"]", local_data.parsed_data_buffer[i].unit + 1, local_data.parsed_data_buffer[i].channel, local_data.parsed_data_buffer[i].raw_data);
                     }
                 }
             } else {
@@ -235,38 +236,48 @@ static void adc_read_task(void *pvParameters)
             }
         }
 
+        vTaskDelay(pdMS_TO_TICKS(1));
+
         // Read value 
         for(adc_channel_t it = ADC_CHANNEL_0; it < ADC_CHANNEL_10; it++)
         {
             switch(it){
                 case ADC_CHANNEL_4:
-                    avg_read_raw[ADC_CHANNEL_4] = read_raw[ADC_CHANNEL_4] / read_count[ADC_CHANNEL_4];
-                    if (xSemaphoreTake(local_data.read_semaphore, portMAX_DELAY) == pdTRUE)
-                    {
-                        local_data.adc_output_chan4 = avg_read_raw[ADC_CHANNEL_4];
-                        xSemaphoreGive(local_data.read_semaphore);
+                    if (local_data.read_count[ADC_CHANNEL_4] > 0) {
+                        local_data.avg_read_raw[ADC_CHANNEL_4] = local_data.read_raw[ADC_CHANNEL_4] / local_data.read_count[ADC_CHANNEL_4];
+                        if (xSemaphoreTake(local_data.read_semaphore, portMAX_DELAY) == pdTRUE)
+                        {
+                            local_data.adc_output_chan4 = local_data.avg_read_raw[ADC_CHANNEL_4];
+                            xSemaphoreGive(local_data.read_semaphore);
+                        }
                     }
                     break;
                 case ADC_CHANNEL_6:
-                    avg_read_raw[ADC_CHANNEL_6] = read_raw[ADC_CHANNEL_6] / read_count[ADC_CHANNEL_6];
-                    if (xSemaphoreTake(local_data.read_semaphore, portMAX_DELAY) == pdTRUE)
-                    {
-                        local_data.adc_output_chan6 = avg_read_raw[ADC_CHANNEL_6];
-                        xSemaphoreGive(local_data.read_semaphore);
+                    if (local_data.read_count[ADC_CHANNEL_6] > 0) {
+                        local_data.avg_read_raw[ADC_CHANNEL_6] = local_data.read_raw[ADC_CHANNEL_6] / local_data.read_count[ADC_CHANNEL_6];
+                        if (xSemaphoreTake(local_data.read_semaphore, portMAX_DELAY) == pdTRUE)
+                        {
+                            local_data.adc_output_chan6 = local_data.avg_read_raw[ADC_CHANNEL_6];
+                            xSemaphoreGive(local_data.read_semaphore);
+                        }
                     }
                     break;
                 case ADC_CHANNEL_7:
-                    avg_read_raw[ADC_CHANNEL_7] = read_raw[ADC_CHANNEL_7] / read_count[ADC_CHANNEL_7];
-                    if (xSemaphoreTake(local_data.read_semaphore, portMAX_DELAY) == pdTRUE)
-                    {
-                        local_data.adc_output_chan7 = avg_read_raw[ADC_CHANNEL_7];
-                        xSemaphoreGive(local_data.read_semaphore);
+                      if (local_data.read_count[ADC_CHANNEL_7] > 0) {
+                        local_data.avg_read_raw[ADC_CHANNEL_7] = local_data.read_raw[ADC_CHANNEL_7] / local_data.read_count[ADC_CHANNEL_7];
+                        if (xSemaphoreTake(local_data.read_semaphore, portMAX_DELAY) == pdTRUE)
+                        {
+                            local_data.adc_output_chan7 = local_data.avg_read_raw[ADC_CHANNEL_7];
+                            xSemaphoreGive(local_data.read_semaphore);
+                        }
                     }
                     break;
                 default:
                     break;
             }
         }
+
+        vTaskDelay(pdMS_TO_TICKS(1));
     }
 
     adc_continuous_stop(local_data.adc1_handle);
@@ -293,6 +304,8 @@ static void continuous_adc_init(adc_channel_t *channel, uint8_t channel_num, adc
         .format = ADC_READ_ADC_OUTPUT_TYPE,
     };
 
+    ESP_LOGE(TAG, "trying to setup ADC PATTERN");
+
     adc_digi_pattern_config_t adc_pattern[SOC_ADC_PATT_LEN_MAX] = {0};
     for (int i = 0; i < channel_num; i++) {
         adc_pattern[i].atten = ADC_READ_ADC_ATTEN;
@@ -306,6 +319,8 @@ static void continuous_adc_init(adc_channel_t *channel, uint8_t channel_num, adc
     }
     adc_cfg.adc_pattern = adc_pattern;
     adc_continuous_config(handle, &adc_cfg);
+
+    ESP_LOGE(TAG, "Configured ADC PATTERN");
 
     *out_handle = handle;
 }
