@@ -1,669 +1,724 @@
 \documentclass[12pt,a4paper]{article}
-
-% ------------------------------------------------------------
-% PACOTES
-% ------------------------------------------------------------
-
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[brazil]{babel}
-
 \usepackage{times}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{bm}
-
+\usepackage{amsmath,amssymb,bm}
 \usepackage{graphicx}
 \usepackage{float}
-\usepackage{booktabs}
-\usepackage{array}
-\usepackage{multirow}
-
-\usepackage{cite}
+\usepackage{booktabs,array}
+\usepackage{csquotes}
+\usepackage[backend=biber,style=authoryear,sorting=nyt,maxcitenames=2,maxbibnames=10]{biblatex}
+\addbibresource{referencias_tcc.bib}
 \usepackage{url}
-
 \usepackage{geometry}
-\geometry{
-    a4paper,
-    left=3cm,
-    right=2cm,
-    top=3cm,
-    bottom=2cm
-}
-
 \usepackage{setspace}
 \usepackage{indentfirst}
-
 \usepackage{caption}
 \usepackage{subcaption}
-
 \usepackage{listings}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\definecolor{navyblue}{RGB}{31,69,111}
+\definecolor{lightblue}{RGB}{236,244,250}
+\definecolor{warmgray}{RGB}{246,247,249}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{arydshln}
+\makeatletter
+\def\adl@drawiv#1#2#3{%
+        \hskip.5\tabcolsep
+        \xleaders#3{#2.5\@tempdimb #1{1}#2.5\@tempdimb}%
+                #2\z@ plus1fil minus1fil\relax
+        \hskip.5\tabcolsep}
+\newcommand{\cdashlinelr}[1]{%
+  \noalign{\vskip\aboverulesep
+           \global\let\@dashdrawstore\adl@draw
+           \global\let\adl@draw\adl@drawiv}
+  \cdashline{#1}
+  \noalign{\global\let\adl@draw\@dashdrawstore
+           \vskip\belowrulesep}}
+\makeatother
+\newcommand{\cod}[1]{\texttt{\detokenize{#1}}}
 
-% ------------------------------------------------------------
-% CONFIGURAÇÕES
-% ------------------------------------------------------------
+% Packages used for creating algorithms in LaTEX
+% Renamed REQUIRE to Input:
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\algrenewcommand\algorithmicrequire{\textbf{Input:}}
+\algrenewcommand\algorithmicensure{\textbf{Output:}}
 
+\geometry{a4paper,left=3cm,right=2cm,top=3cm,bottom=2cm}
 \setlength{\parindent}{1.25cm}
 \setlength{\parskip}{0pt}
-
 \onehalfspacing
-
-% ------------------------------------------------------------
-% INFORMAÇÕES DO TRABALHO
-% ------------------------------------------------------------
-
-\title{
-    \textbf{Controle e rastreamento de sistemas farmacocinéticos}
-}
-
-\author{
-    Melvin Gustavo Maradiaga Elvir
-}
-
-\date{
-    Campinas\\
-    2026
-}
-
-% ------------------------------------------------------------
-% DOCUMENTO
-% ------------------------------------------------------------
+\captionsetup{font=small,labelfont=bf}
+\graphicspath{{imagens/}}
 
 \begin{document}
-
-% FOLHA DE ROSTO
-% ============================================================
+\hypersetup{pageanchor=false}
+\pagenumbering{gobble}
 
 \begin{titlepage}
-
 \begin{center}
-
-{\large
-UNIVERSIDADE ESTADUAL DE CAMPINAS
-}
-
-\vspace{0.3cm}
-
-{\large
-FACULDADE DE ENGENHARIA ELÉTRICA E DE COMPUTAÇÃO
-}
-
+{\large UNIVERSIDADE ESTADUAL DE CAMPINAS}\\[0.25cm]
+{\large FACULDADE DE ENGENHARIA ELÉTRICA E DE COMPUTAÇÃO}
 \vfill
-
-{\large
-MELVIN GUSTAVO MARADIAGA ELVIR
-}
-
+{\large MELVIN GUSTAVO MARADIAGA ELVIR}
 \vfill
-
-{\Large
-\textbf{Controle e rastreamento de sistemas farmacocinéticos}
-}
-
-{\large
-<Link do video>
-}
-
-
-\vspace{1cm}
-
-\begin{flushright}
-\begin{minipage}{0.55\textwidth}
-Trabalho apresentado como requisito para
-conclusão do curso de Engenharia Elétrica,
-sob orientação da Prof(a). Dr(a). Cecília de
-Freitas Morais.
-\end{minipage}
-\end{flushright}
-
+{\Large\bfseries Controle e rastreamento de sistemas farmacocinéticos\par}
+\vspace{0.7cm}
+% Falta inserir link do video
 \vfill
-
-Campinas\\
-2026
-
+Campinas\\2026
 \end{center}
-
 \end{titlepage}
 
-% ============================================================
-% DEDICATÓRIA
-% ============================================================
 
-\section*{Dedicatória}
+\begin{titlepage}
+\begin{center}
+{\large UNIVERSIDADE ESTADUAL DE CAMPINAS}\\[0.25cm]
+{\large FACULDADE DE ENGENHARIA ELÉTRICA E DE COMPUTAÇÃO}
+\vfill
+{\large MELVIN GUSTAVO MARADIAGA ELVIR}
+\vfill
+{\Large\bfseries Controle e rastreamento de sistemas farmacocinéticos\par}
+\vspace{1.5cm}
+\end{center}
+\hfill\begin{minipage}{0.55\textwidth}
+Trabalho apresentado como requisito para conclusão do curso de Engenharia Elétrica da Universidade Estadual de Campinas, sob orientação da Profa. Dra. Cecília de Freitas Morais.
+\end{minipage}
+\vfill
+\begin{center}Campinas\\2026\end{center}
+\end{titlepage}
 
-% Opcional.
-
-\newpage
-
-% ============================================================
-% AGRADECIMENTOS
-% ============================================================
-
-\section*{Agradecimentos}
-
-% Escrever posteriormente.
-
-\newpage
-
-% ============================================================
-% RESUMO
-% ============================================================
+% FALTA DEDICATORIA E AGRADECIMENTOS
 
 \section*{Resumo}
-
-% Escrever posteriormente.
-%
-% O resumo deve apresentar:
-% - contexto/problema;
-% - objetivo;
-% - metodologia;
-% - principais resultados;
-% - conclusão.
-%
-% Evitar referências bibliográficas no resumo.
-
-\vspace{0.5cm}
-
-\noindent
-\textbf{Palavras-chave:} controle robusto; desigualdades matriciais
-lineares; farmacocinética; sistemas ciberfísicos médicos;
-sistemas embarcados.
-
+\noindent\textbf{Palavras-chave:} controle robusto; desigualdades matriciais lineares; farmacocinética; rastreamento de referência; sistemas embarcados.
 \newpage
-
-% ============================================================
-% ABSTRACT
-% ============================================================
 
 \section*{Abstract}
+\noindent\textbf{Keywords:} robust control; linear matrix inequalities; pharmacokinetics; reference tracking; embedded systems.
+\newpage
 
-% Escrever posteriormente.
+\cleardoublepage
+\pagenumbering{roman}
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+\hypersetup{pageanchor=true}
 
-\vspace{0.5cm}
+% ----------------------------------------------------------
+\section{Introdução}
+\label{sec:introducao}
+% ----------------------------------------------------------
+
+Os sistemas ciberfísicos (\cite{lee2017embedded}) integram a computação com processos físicos. Esses sistemas trabalham na interseção entre componentes computacionais, como os microcontroladores, e elementos que interagem com o mundo físico, como sensores e atuadores. Desde seu desenvolvimento eles têm sido empregados no desenvolvimento de diversas tecnologias, incluindo veículos autônomos, infraestruturas críticas inteligentes e, mais recentemente, sistemas médicos ciberfísicos (\textit{Medical Cyber-Physical Systems} - MCPS) (\cite{dey2018medical}). Com o avanço da biomedicina, o interesse no desenvolvimento de MCPS tem crescido, impulsionando o desenvolvimento e implementação de tecnologias de controle. Exemplos dessas aplicações incluem o pâncreas artificial (\cite{brown2019six}) e os controladores para reanimação volêmica em casos de hipovolemia (\cite{kramer2008closed}). Nesse contexto, a administração automatizada de medicamentos, na qual algoritmos de controle são empregados para ajustar continuamente a dosagem administrada ao paciente, torna-se uma das aplicações mais relevantes e promissoras dos MCPS.
+
+O campo da farmacologia clínica é de especial interesse devido ao potencial dessas tecnologias para aumentar a eficácia terapêutica e diminuir os riscos associados à administração inadequada de medicamentos. A farmacocinética, que estuda a evolução da concentração de medicamentos no organismo em função do tempo e da dose (\cite{bailey2005drug}), permite representar esses processos através de modelos compartimentais. Com base nesses modelos, diversas estratégias de controle têm sido propostas para a administração automatizada de medicamentos (\cite{gholami2013optimal,nogueira2016positive,padmanabhan2019optimal}).
+
+Uma alternativa para o projeto de controladores (ou, rastreadores de referência) aplicados a processos farmacocinéticos consiste no uso de técnicas de controle robusto baseadas em desigualdades matriciais lineares (\textit{Linear Matrix Inequalities} - LMIs) (\cite{morais_reference,marcomini2025projeto}). Essas técnicas permitem formular condições de estabilidade para famílias de sistemas afetados por incertezas paramétricas e variantes no tempo, tornando o rastreador válido mesmo que a modelagem física do indivíduo fosse imprecisa ou sofresse pequenas flutuações ao longo do tempo. 
+
+A validação de estratégias de controle propostas na literatura é frequentemente realizada em ambientes de simulação. Contudo, com o objetivo de aproximar a análise do rastreador de condições práticas de operação, também têm sido desenvolvidas plataformas físicas  de emulação utilizando circuitos eletrônicos (\cite{costa2024designing}) e sistemas embarcados (\cite{desouza2025embedded, oliveira2024preliminary}).
+
+Neste trabalho, considera-se um modelo farmacocinético discreto de três compartimentos, que representa a distribuição de um fármaco entre músculo, sangue e órgãos. Com base nesse modelo, estabelece-se uma malha fechada de controle proporcional-integral (PI) destinada ao rastreamento de uma referência de concentração de fármaco. O projeto dos ganhos do controlador é realizado através de um procedimento iterativo baseado em LMIs (\cite{morais_reference}), adaptado à malha fechada adotada. Para avaliar o comportamento do rastreador frente às incertezas paramétricas consideradas, são realizadas simulações em MATLAB/Simulink (\cite{matlab2016a}) para diferentes combinações dos parâmetros da planta. Posteriormente, a malha é implementada em dois microcontroladores ESP32, emulando respectivamente o controlador e a planta, com comunicação por UART e monitoramento por MQTT.
+
+% ----------------------------------------------------------
+\newpage
+\section{Objetivos}
+\label{sec:objetivos}
+% ----------------------------------------------------------
+
+O objetivo deste trabalho é projetar e validar um rastreador de referencia capaz de assegurar a estabilidade do modelo compartimental de absorção de fármacos escolhido, considerando incertezas paramétricas na dinâmica da planta. 
+Os ganhos da lei de controle PI associada ao rastreador serão projetos por meio de um procedimento iterativo baseado em LMIs, cujo resultado permitirá avaliar o comportamento do sistema por meio de simulação e por meio de emulação em uma plataforma embarcada.
+
+De maneira específica, pretende-se formular a equação do sistema aumentado com ação integral; resolver numericamente as condições LMIs para o projeto do rastreador; analisar a estabilidade do rastreador para distintos valores dos parâmetros incertos no MATLAB/Simulink; e emular a planta e controlador em dois ESP32. Os resultados da emulação são confrontados com o comportamento observado nas simulações, de modo a avaliar a realização prática do rastreamento de referência.
+
+% ----------------------------------------------------------
+\newpage
+\section{Metodologia}
+\label{sec:metodologia}
+% ----------------------------------------------------------
+
+O projeto foi desenvolvido em três etapas diferentes. Inicialmente, selecionou-se o modelo de absorção de fármacos a ser controlado, para depois prosseguir com o estudo de técnicas de rastreamento robusto na literatura, em especial aquelas através de LMIs. Com base nessa investigação, estabeleceu-se a malha de controle utilizada neste trabalho e tanto sua representação em espaço de estados como suas restrições de LMI foram deduzidas.
+
+Na segunda etapa, um procedimento iterativo baseado na estratégia descrita em (\cite{morais_reference}) foi adotado. 
+As matrizes de estado e LMIs deduzidas na etapa anterior foram implementadas em Matlab, e por meio das ferramentas YALMIP \cite{lofberg2004yalmip}, ROLMIP \cite{agulhari2019rolmip} e o solucionador SeDuMi \cite{sturm1999sedumi}, os ganhos do controlador foram projetados. Em seguida, o sistema em malha fechada foi reproduzido no Simulink, e o comportamento temporal da saída foi estudado em oito combinações extremas dos três parâmetros incertos do modelo.
+
+A última etapa consistiu na implementação embarcada. Para isso, foram utilizados dois microcontroladores ESP32: um responsável pelo cálculo da ação de controle e outro pela atualização do modelo matemático da planta. A comunicação entre dispositivos foi realizada por UART, enquanto a comunicação MQTT foi empregada para o acompanhamento das variáveis de estado, o acompanhamento da saída, e o ajuste da referência por uma interface de supervisão.
+
+% ----------------------------------------------------------
+\newpage
+\section{Desenvolvimento}
+\label{sec:desenvolvimento}
+% ----------------------------------------------------------
+
+\subsection{Modelo farmacocinético}
+\label{subsec:modelo}
+
+O modelo farmacocinético adotado \eqref{eq:modelo_farmacocinetico} considera a concentração de um fármaco em três compartimentos: músculo, sangue e órgão. O medicamento é aplicado no músculo, de onde ele é distribuído aos demais compartimentos através de taxas de transferência e de absorção. O modelo é descrito em tempo discreto em (\cite{oliveira2024preliminary}).
+\begin{subequations}\label{eq:modelo_farmacocinetico}
+    \begin{align}
+        m(k+1) &= (1-\gamma_{mb}-\mu_m)m(k)+\gamma_{bm}b(k)+D_m u(k),\label{eq:musculo}\\
+        b(k+1) &= \gamma_{mb}m(k)+(1-\gamma_{bo}-\gamma_{bm}-\mu_b)b(k)+\gamma_{ob}o(k),\label{eq:sangue}\\
+        o(k+1) &= \gamma_{bo}b(k)+(1-\gamma_{ob}-\mu_o)o(k),\label{eq:orgao}
+    \end{align}
+\end{subequations}
 
 \noindent
-\textbf{Keywords:} robust control; linear matrix inequalities;
-pharmacokinetics; medical cyber-physical systems;
-embedded systems.
+em que $m(k)$, $b(k)$ e $o(k)$ representam as concentrações em cada compartimento; $\gamma_{ij}$ corresponde à taxa de transferência do compartimento $i$ para o compartimento $j$; $\mu_i$ representa a taxa de absorção associada ao compartimento $i$; $D_m$ é o fator de administração do medicamento; e $u(k)$ é a ação de controle.
+
+Seja o vetor de estados $x(k)=[m(k)\;b(k)\;o(k)]^\top$. O modelo pode ser escrito em espaço de estados através de
+\begin{subequations}\label{eq:representacao_em_estados_v1}
+    \begin{align}
+    x(k+1)&=A(\alpha)x(k)+Bu(k),\label{eq:planta_estados}\\
+    y(k)&=Cx(k),\label{eq:planta_saida}
+    \end{align}
+\end{subequations}
+com a matriz de estados $A$, de entrada $B$ e de saída $C$ dadas por
+\begin{equation}
+    \begin{aligned} A(\alpha)&=\begin{bmatrix}
+    1-\gamma_{mb}-\mu_m(\alpha) & \gamma_{bm} & 0\\
+    \gamma_{mb} & 1-\gamma_{bo}-\gamma_{bm}-\mu_b & \gamma_{ob}(\alpha)\\
+    0 & \gamma_{bo} & 1-\gamma_{ob}(\alpha)-\mu_o(\alpha)
+    \end{bmatrix},\\[0.4em]
+    B&=\begin{bmatrix}D_m\\0\\0\end{bmatrix},\qquad
+    C=\begin{bmatrix}0&0&1\end{bmatrix}.\end{aligned}
+    \label{eq:matrizes_planta}
+\end{equation}
+
+Para representar as incertezas da planta, foram considerados três parâmetros variáveis: $\gamma_{ob}$, $\mu_m$ e $\mu_o$. Como cada um dos três parâmetros incertos pode assumir dois valores extremos, obtêm-se $2^3=8$ vértices para o politopo de matrizes da planta. Logo, o conjunto de modelos possíveis considerados no projeto pode ser representado pela combinação convexa
+\begin{equation}
+ A(\alpha)=\sum_{i=1}^{8}\alpha_i A_i,\qquad
+ \alpha_i\geq 0,\qquad\sum_{i=1}^{8}\alpha_i=1,
+ \label{eq:politopo}
+\end{equation}
+em que $A_i$ são as matrizes correspondentes às oito combinações dos valores extremos dos parâmetros. As faixas de variação desses parâmetros são apresentadas na Tabela~\ref{tab:parametros_planta}.
+
+\begin{table}[htbp]
+\centering
+\caption{Parâmetros utilizados na modelagem da planta farmacocinética.}
+\label{tab:parametros_planta}
+\begin{tabular}{lcc}
+\toprule
+Parâmetro & Valor mínimo & Valor máximo\\
+\midrule
+$\gamma_{ob}$ & $0{,}037$ & $0{,}040$\\
+$\mu_m$ & $0{,}100$ & $0{,}200$\\
+$\mu_o$ & $0{,}100$ & $0{,}150$\\
+\midrule
+\multicolumn{3}{l}{Parâmetros fixos: $\gamma_{mb}=0{,}095$, $\gamma_{bo}=0{,}095$, $\gamma_{bm}=0{,}030$, $\mu_b=0{,}200$.}\\
+\multicolumn{3}{l}{$D_m=0{,}010$.}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+As dimensões a ser consideradas para cada elemento são $n_x=3$, $n_y=n_u=1$ e $n_a=n_x+n_y=4$.
+
+\subsection{Estrutura de controle}
+\label{subsec:malha}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        >=Latex,
+        font=\small,
+        block/.style={draw, thick, minimum height=9mm, align=center, fill=white},
+        sum/.style={draw, circle, thick, inner sep=0pt, minimum size=7mm},
+        wire/.style={->, thick},
+        tap/.style={circle,fill=black,inner sep=1.25pt}
+    ]
+    % Sinais de entrada, erros e integrador discreto
+    \node (ref) at (0,0) {$r(k)$};
+    \node[sum] (s1) at (1.55,0) {};
+    \node[sum] (s2) at (3.20,0) {};
+    \node[block,minimum width=1.15cm] (delay) at (4.5,0) {$z^{-1}$};
+    \node[block,minimum width=1.00cm] (ki) at (6.4,0) {$K_i$};
+    \node[sum] (s3) at (7.75,0) {};
+    \node[block,minimum width=3.6cm,minimum height=1.28cm] (plant) at (11.25,0) {\shortstack{Planta farmacocinética\\$x^{+}=Ax+Bu$\\$y=Cx$}};
+    \node (out) at (14.8,0) {$y(k)$};
+    
+    \draw[wire] (ref) -- (s1);
+    \draw[wire] (s1) -- node[above] {$e(k)$} (s2);
+    \draw[wire] (s2) -- (delay);
+    \draw[wire] (delay) -- (ki);
+    \draw[wire] (ki) -- (s3);
+    \draw[wire] (s3) -- node[above] {$u(k)$} (plant);
+    \draw[wire] (plant) -- (out);
+    
+    % Sinais de soma
+    \node at ($(s1)+(-0.15,0.0)$) {\scriptsize$+$};
+    \node at ($(s1)+(0,-0.19)$) {\scriptsize$-$};
+    \node at ($(s2)+(0.0,0.18)$) {\scriptsize$+$};
+    \node at ($(s2)+(-0.15,0.0)$) {\scriptsize$+$};
+    \node at ($(s3)+(-0.15,0.0)$) {\scriptsize$+$};
+    \node at ($(s3)+(0,0.18)$) {\scriptsize$+$};
+    
+    % Realimentação do acumulador: saída de z^-1 volta ao somador 2
+    \coordinate (accTap) at ($(delay.east)+(0.28,0)$);
+    \node[tap] at (accTap) {};
+    \draw[wire] (accTap) |- (3.2,1.25) -- (s2.north);
+    
+    % Realimentação proporcional pela saída medida
+    \coordinate (yTap) at (13.75, 0);
+    \node[tap] at (yTap) {};
+    \node[block,minimum width=1.1cm] (kp) at (10.8,1.65) {$K_p$};
+    \draw[wire] (yTap) |- (kp.east);
+    \draw[wire] (kp.west) -- (7.75,1.65) -- (s3.north);
+    
+    % Realimentação negativa para o erro
+    \draw[wire] (yTap) |- (1.55,-1.35) -- (s1.south);
+    \end{tikzpicture}
+    \caption{Malha de controle PI discreta para o modelo farmacocinético, sem os blocos de exportação de dados do Simulink.}
+    \label{fig:malha_controle}
+\end{figure}
+
+De maneira geral, consideremos que $x(k)\in\mathbb{R}^{n_x}$, $u(k)\in\mathbb{R}^{n_u}$ e $y(k)\in\mathbb{R}^{n_y}$. Para as matrizes na representação de estados \eqref{eq:representacao_em_estados_v1} consideremos que $A(\alpha)\in\mathbb{R}^{n_x\times n_x}$, $B\in\mathbb{R}^{n_x\times n_u}$ e $C\in\mathbb{R}^{n_y\times n_x}$. Com o objetivo de rastrear uma referência de concentração $r(k)\in\mathbb{R}^{n_y}$, foi adotada uma malha fechada com ação proporcional e integral (Figura~\ref{fig:malha_controle}) cuja lei de controle é descrita por
+\begin{equation}
+ u(k)=K_p y(k)+K_i x_i(k).
+ \label{eq:lei_controle}
+\end{equation}
+$K_p$ e $K_i$ são os ganhos a serem determinados pelo procedimento de projeto. O estado integral $x_i(k)$ é usado para eliminar o erro em regime permanente, e é definido por
+\begin{equation}
+ x_i(k+1)=x_i(k)+e(k)=x_i(k)+r(k)-y(k).
+ \label{eq:integrador}
+\end{equation}
+
+\noindent
+As duas variáveis de estado no tempo futuro podem ser obtidas substituindo a equação \eqref{eq:lei_controle} em \eqref{eq:planta_estados}, e substituindo a equação \eqref{eq:integrador}  em \eqref{eq:planta_saida}
+\begin{subequations}\label{eq:planta_fechada_completa}
+    \begin{align}
+        x(k+1)=\bigl(A(\alpha)+BK_pC\bigr)x(k)+BK_i x_i(k),
+        \label{eq:planta_fechada}\\
+        x_i(k+1)=-Cx(k)+x_i(k)+r(k).
+        \label{eq:integrador_fechado}
+    \end{align}
+\end{subequations}
+
+Seja o vetor de estados aumentado $\widetilde{x}(k)=[x(k)^\top\;x_i(k)]^\top\in\mathbb{R}^{n_a}$ com $n_a=n_x+n_y$. Sob este novo vetor de estados, a dinâmica do sistema em malha fechada pode ser representada de maneira matricial, por
+\begin{equation}
+ \widetilde{x}(k+1)=
+ \underbrace{\begin{bmatrix}
+ A(\alpha)+BK_pC & BK_i\\
+ -C & I_{n_y}
+ \end{bmatrix}}_{A_r(\alpha)}\widetilde{x}(k)
+ +\begin{bmatrix}0_{n_x\times n_y}\\I_{n_y}\end{bmatrix}r(k).
+ \label{eq:sistema_aumentado}
+\end{equation}
+\noindent
+Deste processo, obtem-se a matriz dinâmica do sistema aumentado $A_r(\alpha)\in\mathbb{R}^{n_a\times n_a}$.
+
+\subsection{Projeto dos ganhos através de LMIs}
+\label{subsec:lmis}
+
+A partir da representação em malha fechada \eqref{eq:sistema_aumentado} obtida na Seção~\ref{subsec:malha}, busca-se determinar os ganhos $K_p$ e $K_i$ que permitam o sistema dinâmico rastrear a referência $r(k)=r(k+1)=r,\forall k$. Para isso, adotou-se o procedimento iterativo de projeto através de desigualdades matriciais lineares (LMIs) apresentado em (\cite{morais_reference}), modificado para a malha de controle adotada neste trabalho. 
+
+\subsubsection{Representação matricial da malha fechada}
+
+Para garantir que o sistema de malha fechada seja capaz de seguir a referência, é necessário descobrir quais são as condições que $A_r(\alpha)$ precisa satisfazer para ser assintóticamente estável. Para isso, torna-se conveniente reescrevêr a representação de estados de modo a separar a dinâmica da planta dos ganhos que serão calculados.
+
+\begin{equation}
+    \widetilde{x}(k+1)=
+    \left(
+        \underbrace{
+            \begin{bmatrix}
+                A(\alpha) & 0 \\
+                -C & I
+            \end{bmatrix}
+        }_{\widetilde{A}(\alpha)}
+        +
+        \underbrace{
+            \begin{bmatrix}
+                B\\0
+            \end{bmatrix}
+        }_{\widetilde{B}}
+        \underbrace{
+            \begin{bmatrix}
+                K_p & K_i
+            \end{bmatrix}
+        }_{\widetilde{K}}
+        \underbrace{
+            \begin{bmatrix}
+                C & 0\\
+                0 & I
+            \end{bmatrix}
+        }_{\widetilde{C}}
+    \right)\widetilde{x}(k)
+    +
+    \begin{bmatrix}
+    0\\
+    I
+    \end{bmatrix}r(k).
+    \label{eq:sistema_aumentado_fatorado}
+\end{equation}
+De forma que
+\begin{equation}
+    A_r(\alpha)=\widetilde A(\alpha)+\widetilde B\widetilde K\widetilde C.
+    \label{eq:lmi_realimentacao_matricial}
+\end{equation}
+
+\subsubsection{Condição de estabilidade e primeira aplicação do lema de Finsler}
+
+Partimos de uma função candidata de Lyapunov para estudar a dinâmica homogênea do sistema aumentado, dada por
+\begin{equation}
+ V(k)=\widetilde x(k)^\top P(\alpha_k)\widetilde x(k),\qquad P(\alpha_k)=P(\alpha_k)^\top\succ0.
+ \label{eq:lmi_lyapunov}
+\end{equation}
+
+\noindent
+Consideremos $P_{k+1}=P_k=P(\alpha_k)=P(\alpha_{k+1})$ e, para simplificar a notação, que $A_r=A_r(\alpha_k)$. Por ser uma função de Lyapunov, espera-se que ela diminua estritamente no tempo, tal que
+\begin{align}
+    \Delta V(k) 
+    &= V(k+1) - V(k) \\
+    &=  \widetilde x(k+1)^\top P_k\widetilde x(k+1) - \widetilde x(k)^\top P_k\widetilde x(k) \\
+    &= \widetilde x(k)^\top ( A_r^\top P_{k}A_r-P_k )\widetilde x(k) < 0.
+    \label{eq:lmi_lyapunov_diferenca}
+\end{align}
+Assim, para garantir $\Delta V(k) < 0$ para todo $\widetilde x(k) \neq 0$, precisa-se que
+\begin{equation}
+    A_r^\top P_{k}A_r-P_k \prec 0
+\end{equation}
+
+\noindent
+Para reescrever~\eqref{eq:lmi_lyapunov_diferenca}, consideraram-se as matrizes
+\begin{equation}
+    \mathcal Q_1=\begin{bmatrix}-P_k&0\\0&P_{k}\end{bmatrix},\qquad
+    \mathcal B_1=\begin{bmatrix}A_r&-I_{n_a}\end{bmatrix},\qquad
+    \mathcal B_1^\perp=\begin{bmatrix}I_{n_a}\\A_r\end{bmatrix},
+    \label{eq:lmi_primeira_restricao}
+\end{equation}
+onde $\mathcal B_1\mathcal B_1^\perp=0$. Dessa forma, a condição de Lyapunov é equivalente a
+\begin{equation}
+ (\mathcal B_1^\perp)^\top\mathcal Q_1\mathcal B_1^\perp\prec0.
+ \label{eq:lmi_condicao_nucleo}
+\end{equation}
+Pelo lema de Finsler, como $\mathcal B_1$ possui posto linha completo, a desigualdade anterior implica que existe uma matriz auxiliar $\mathcal X_1=[F^\top\;G^\top]^\top$ tal que
+\begin{equation}
+    \mathcal Q_1+\mathcal X_1\mathcal B_1+\mathcal B_1^\top\mathcal X_1^\top\prec0.
+    \label{eq:lmi_finsler_1}
+\end{equation}
+Substituindo as variáveis e expandindo os produtos, obtém-se
+\begin{equation}
+ \begin{bmatrix}
+ F A_r+A_r^\top F^\top-P_k & A_r^\top G^\top-F\\
+ G A_r-F^\top & P_{k+1}-G-G^\top
+ \end{bmatrix}\prec0,
+ \label{eq:lmi_finsler_1_expandida}
+\end{equation}
+em que a dependência paramétrica de $F$ e $G$ foi omitida para simplificar a notação. Veja que, como a transformação introduz produtos entre as variáveis auxiliares e os ganhos contidos em $A_r$, ainda não se possui uma LMI, pelo qual irá se aplicar mais uma vez o lema de Finsler.
+
+\subsubsection{Segunda aplicação do lema de Finsler}
+
+Para obter uma representação ampliada da desigualdade~\eqref{eq:lmi_finsler_1_expandida}, definem-se as seguintes matrizes
+\begin{equation}
+    \mathcal Q_2=\begin{bmatrix}
+    -P_k&0&A_r^\top\\
+    0&P_{k}&-I_{n_a}\\
+    A_r&-I_{n_a}&0
+    \end{bmatrix},\qquad
+    \mathcal B_2^\perp=\begin{bmatrix}
+    I_{n_a}&0\\0&I_{n_a}\\F^\top&G^\top
+    \end{bmatrix}.
+    \label{eq:lmi_q2}
+\end{equation}
+Verifica-se por multiplicação direta que $(\mathcal B_2^\perp)^\top\mathcal Q_2\mathcal B_2^\perp$ reproduz a matriz da Equação~\eqref{eq:lmi_finsler_1_expandida}. Como uma matriz que anula $\mathcal B_2^\perp$ é $\mathcal B_2=\begin{bmatrix}-F^\top&-G^\top&I_{n_a}\end{bmatrix}$, sabe-se que $\mathcal B_2\mathcal B_2^\perp=0$ e que pelo lema de Finsler existe matriz auxiliar $X\in\mathbb R^{3n_a\times n_a}$, tal que
+\begin{equation}
+    \boxed{\mathcal Q_2+XY+Y^\top X^\top\prec0,}
+    \qquad
+    X=\begin{bmatrix}X_1\\X_2\\X_3\end{bmatrix},\quad
+    Y=\begin{bmatrix}Y_1&Y_2&Y_3\end{bmatrix}.
+    \label{eq:lmi_final}
+\end{equation}
+Nesta construção, $Y$ corresponde à matriz $\mathcal B_2$. 
+
+\noindent
+Veja que a expressão \eqref{eq:lmi_final} ainda não descreve uma LMI, visto que o produto de variáveis em $XY$ e $Y^\top X^\top$ a torna bilinear. Para contornar essa dificuldade, fixa-se $Y$, de forma que a desigualdade se torne linear nas variáveis $P$, $X$ e nos ganhos do controlador.
+
+\noindent
+Assim, a condição de Lyapunov inicial se torna uma LMI \eqref{eq:lmi_final}, permitindo a aplicação do procedimento iterativo detalhado em seguida para a descoberta dos seus ganhos.
+
+\subsubsection{Síntese dos ganhos do controlador PI}
+
+Seguindo a estratégia proposta no artigo de referência, desenvolveu-se um algoritmo (Algoritmo~\ref{alg:sintese_pi_lmi}) capaz de projetar os ganhos do controlador PI da malha, sob as condições estabelecidas anteriormente. Considerando a variável $Y$ como fixa, seja seu ponto inicial
+\begin{equation}
+ Y^{(0)}=\begin{bmatrix}0&I_{n_a}&-I_{n_a}\end{bmatrix}.
+ \label{eq:lmi_y0}
+\end{equation}
+
+\noindent
+Para tornar o algoritmo mais prático, introduz-se uma relaxação na forma de um parâmetro escalar $\rho$ e substitui-se, na matriz $\mathcal Q_2$, a dinâmica de malha fechada pela expressão relaxada
+\begin{equation}
+ A_\rho(\alpha)= (1-\rho)\widetilde A(\alpha)+\widetilde B\overline K\widetilde C
+ =\begin{bmatrix}
+ (1-\rho)A(\alpha)+B\overline K_pC&B\overline K_i\\
+ -(1-\rho)C&(1-\rho)I_{n_y}
+ \end{bmatrix},
+ \label{eq:matriz_rho}
+\end{equation}
+Considera-se a presença da variável de relaxação implicita  nos ganhos, de forma que $\overline K = (1-\rho)\widetilde K $ representa os ganhos do controlador PI já escalados pelo escalar de relaxação.
+
+A cada iteração $m$, o programa minimiza $\rho$ sujeito a uma restrição de positividade para $P$ e à desigualdade~\eqref{eq:lmi_final}, calculada com $A_\rho$ e $Y$ fixada. A cada iteração, atualiza-se a matrix auxiliar por $Y=X^\top$ e resolve-se novamente o problema. Na implementação testada, utilizou-se $it_{\max}=50$ e $\gamma = 0,001$, interrompendo-se o processo antecipadamente quando se obtém $\rho<\gamma$. Caso numa determinada iteração $\rho_m<\gamma$, os ganhos utilizados no controlador são recuperados por
+\begin{equation}
+ \boxed{K_p=\frac{\overline K_p}{1-\rho_m},\qquad
+ K_i=\frac{\overline K_i}{1-\rho_m}.}
+ \label{eq:normalizacao_ganhos}
+\end{equation}
+
+\begin{algorithm}[htbp]
+    \caption{Projeto iterativo do controlador PI por meio de LMIs}
+    \label{alg:sintese_pi_lmi}
+    \begin{algorithmic}[1]
+        \Require $A,B,C,\gamma$ e $it_{\max}$,
+        \Ensure $K_p$ e $K_i$,
+
+        \State Construir $A(\alpha)$ e $A_r(\alpha)$
+        \State Definir as variáveis $P(\alpha)$, $X(\alpha)$, $K_p(\alpha)$, $K_i(\alpha)$, p
+        \State $Y \gets Y_0 = \begin{bmatrix}0&I_{n_a}&-I_{n_a}\end{bmatrix}$
+
+        \While{$m<it_{\max}$}
+            \State $m\gets m+1$
+            \State Construir $A_p(\alpha)=(1-p)\widetilde A(\alpha)+\widetilde B\overline K\widetilde C$
+            \State Construir
+                $Q(\alpha)=
+                \begin{bmatrix}
+                -P(\alpha)&0&A_p(\alpha)^\top\\
+                0&P(\alpha)&-I_{n_a}\\
+                A_p(\alpha)&-I_{n_a}&0
+                \end{bmatrix}$
+
+            \State Resolver
+            \Statex \hspace{\algorithmicindent}
+            $\displaystyle\min \quad p$
+            \Statex \hspace{\algorithmicindent}
+            sujeito a
+            \Statex \hspace{\algorithmicindent}
+            $ \qquad \qquad P(\alpha)\succeq0$
+            \Statex \hspace{\algorithmicindent}
+            $ \qquad \qquad Q(\alpha)+XY
+            +Y^\top X^\top\preceq0$
+
+            \State $Y\gets X^\top$
+
+            \If{$p<\gamma$}
+                \State \textbf{exit}
+            \EndIf
+        \EndWhile
+
+        \If{$p<\gamma$}
+            \State $K_p\gets\overline K_p/(1-p)$
+            \State $K_i\gets\overline K_i/(1-p)$
+        \EndIf
+
+    \end{algorithmic}
+\end{algorithm}
+
+\noindent
+Da implementação do algoritmo em Matlab, foi possivel calcular os ganhos proporcional e integral exigidos pela malha para satifazer as LMIs: $K_p=-16,6825$ e $K_i=2,2578$.
 
 \newpage
+\subsection{Implementação computacional}
+\label{subsec:implementacao}
 
-% ============================================================
-% SUMÁRIO
-% ============================================================
+\subsubsection{Simulação em Simulink}
 
-\tableofcontents
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.88\textwidth]{malha_de_controle.png}
+\caption{Malha de controle montada em Simulink.}
+\label{fig:malha_de_controle_simulink}
+\end{figure}
+
+Depois de determinar os ganhos do controlador PI, eles foram testados com o objetivo de avaliar o comportamento da malha diante das incertezas paramétricas consideradas. 
+
+Como pode ser visto na Figura \ref{fig:malha_de_controle_simulink} a implementação do modelo no Simulink foi realizada utilizando um bloco \textit{Discrete State-Space} para representar a dinâmica da planta, uns blocos \textit{Gain} para aplicar os ganhos proporcional e integral, um bloco \textit{Delay} para realizar a ação integral, e um bloco \textit{Constant} para aplicar a referência.
+
+Para avaliar o comportamento da malha fechada em diferentes condições de operação, desenvolveu-se um script de Matlab que chama o modelo de Simulink e, através da variação dos parâmetros de entrada no \textit{workspace} global, consegue gerar a resposta da malha às oito combinações extremas dos parâmetros incertos $\gamma_{ob}$, $\mu_m$ e $\mu_o$. Lembrando que cada combinação corresponde a um dos vértices do politopo definido anteriormente. Neste script fixaram-se as variáveis da planta ($A$, $B$ e $C$), fixaram-se os ganhos proporcional e integral nos valores determinados anteriormente ($K_p=-16,6825$, $K_i=2,2578$) e em cada execução, considerou-se uma referência fixa em $r(k)=10$, registrando a resposta temporal da saída. As simulações foram configuradas com um período de amostragem de $T_s=0,01 \mathrm{s}$ ($100\mathrm{Hz}$) e um intervalo de simulação de $7\mathrm{s}$.
+
+Ao final das execuções, os dados de saída foram armazenados no \textit{workspace} do Matlab através do bloco \textit{To Workspace}, e tais dados foram utilizados para gerar os gráficos das respostas da malha nos oito vértices, apresentados na Figura \ref{fig:respostas_vertices_simulink}. Veja que para as diferentes combinações de parâmetros variáveis, todas as respostas tendem a estabilidade, indicando que o controlador projetado é capaz de manter a estabilidade mesmo com variação parâmetrica da planta.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{resposta_simulink_simulacao.png}
+    \caption{Respostas da malha fechada para os oito vértices
+    do politopo, considerando uma referência fixa de $r(k)=10$.}
+    \label{fig:respostas_vertices_simulink}
+\end{figure}
 
 \newpage
-
-% ============================================================
-% 1. INTRODUÇÃO
-% ============================================================
-
-\section{Introdução}
-
-Os sistemas ciberfísicos \cite{lee2017embedded} são uma integração da computação com processos físicos, trabalhando
-na interseção entre componentes cibernéticos, como os microcontroladores, e elementos que
-interagem com o mundo físico, como sensores e atuadores. Eles têm sido implementados no
-desenvolvimento de diversos projetos, variando em complexidade, até chegar a sistemas
-inovadores, como veículos autônomos, infraestruturas críticas inteligentes e, nos últimos anos,
-sistemas médicos ciberfísicos (MCPS) \cite{dey2018medical}. Com o avanço da biomedicina, o interesse no
-desenvolvimento de MCPS tem crescido, impulsionando a implementação de tecnologias de controle
-para ``fechar a malha'' (realimentar o sistema com sinais fisiológicos) e criar dispositivos
-auto-regulados, como o pâncreas artificial \cite{brown2019six}, e controladores para reanimação volêmica em casos
-de hipovolemia \cite{kramer2008closed}. Dentro deste contexto, a administração automatizada de medicamentos, na qual
-algoritmos de controle são empregados para ajustar continuamente a dosagem administrada ao
-paciente, se torna uma das aplicações mais promissoras dos MCPS.
-
-Nesse cenário, o campo da farmacologia clínica é de especial interesse devido ao potencial que os
-MCPS possuem para aumentar a eficácia terapêutica e diminuir os riscos associados à
-administração inadequada de medicamentos. A área de farmacocinética, que estuda a concentração
-de medicamentos no organismo em função de tempo e dose \cite{bailey2005drug}, facilita o desenvolvimento de tais
-dispositivos através dos modelos farmacocinéticos compartimentais. Baseando-se neles, diversas
-estratégias de controle têm sido propostas \cite{gholami2013optimal,nogueira2016positive,padmanabhan2019optimal}
-para administração automatizada de medicamentos.
-Uma alternativa de projeto para garantir a automatização do rastreamento de referências em
-administração farmacológica seria adotar técnicas de controle robusto baseadas em programação
-convexa, mediante o uso de desigualdades matriciais lineares (LMIs), para o projeto de
-controladores, como feito em \cite{marcomini2025projeto}. A vantagem de empregar LMIs é a possibilidade de tratar sistemas
-afetados por incertezas paramétricas e variantes no tempo, ou seja, o rastreador projetado seria
-válido mesmo que a modelagem fisiológica do indivíduo não fosse precisa ou sofresse pequenas
-variações ao longo do tempo. Contudo, a validação das estratégias de controle tem sido realizada
-predominantemente em ambientes de simulação. Para aproximar os resultados obtidos de
-condições reais de operação, plataformas físicas de emulação têm sido desenvolvidas para a
-validação dos controladores, tanto através de circuitos eletrônicos \cite{costa2024designing} quanto por meio de sistemas
-embarcados \cite{desouza2025embedded}.
-
-
-% ============================================================
-% 2. OBJETIVOS
-% ============================================================
-
-\section{Objetivos}
-
-\subsection{Objetivo geral}
-
-% Formular aqui o objetivo geral do trabalho.
-
-
-\subsection{Objetivos específicos}
-
-% Listar os objetivos específicos.
-
-\begin{itemize}
-
-    \item Selecionar e implementar um modelo farmacocinético
-    adequado para representar a dinâmica de absorção e
-    distribuição do fármaco;
-
-    \item Formular o problema de rastreamento de referência
-    considerando incertezas paramétricas;
-
-    \item Projetar um controlador/rastreador robusto utilizando
-    condições baseadas em desigualdades matriciais lineares
-    (LMIs);
-
-    \item Validar o controlador por meio de simulações
-    computacionais em Matlab/Simulink;
-
-    \item Implementar o modelo da planta em uma plataforma
-    embarcada;
-
-    \item Implementar o controlador em um segundo
-    microcontrolador;
-
-    \item Desenvolver a comunicação entre os dispositivos;
-
-    \item Realizar a emulação da malha fechada;
-
-    \item Comparar os resultados obtidos experimentalmente
-    com os resultados obtidos por simulação;
-
-    \item Avaliar o comportamento do sistema diante de
-    diferentes referências e condições de incerteza.
-
-\end{itemize}
-
-
-% ============================================================
-% 3. FUNDAMENTAÇÃO TEÓRICA
-% ============================================================
-
-\section{Fundamentação Teórica}
-
-% Este capítulo apresenta os conceitos necessários para que
-% o leitor compreenda o desenvolvimento do trabalho.
-%
-% Evitar apresentar aqui resultados próprios.
-% A ideia é construir a base teórica utilizada posteriormente.
-
-
-\subsection{Sistemas ciberfísicos médicos}
-
-% Definição de CPS e MCPS.
-%
-% Relacionar computação, sensores, atuadores e processos físicos.
-%
-% Apresentar exemplos de aplicações médicas de controle
-% em malha fechada.
-
-
-\subsection{Farmacocinética e modelos compartimentais}
-
-% Explicar:
-% - conceito de farmacocinética;
-% - concentração do fármaco;
-% - compartimentos;
-% - entrada de medicamento;
-% - dinâmica de absorção/distribuição;
-% - modelo utilizado no trabalho.
-
-
-\subsection{Modelagem em espaço de estados}
-
-% Apresentar:
-%
-% \begin{equation}
-%     \dot{x}(t) = Ax(t) + Bu(t)
-% \end{equation}
-%
-% \begin{equation}
-%     y(t) = Cx(t) + Du(t)
-% \end{equation}
-%
-% Explicar o significado das matrizes e estados.
-
-
-\subsection{Controle e rastreamento de referência}
-
-% Introduzir:
-% - controle em malha fechada;
-% - estabilidade;
-% - erro de rastreamento;
-% - referência;
-% - realimentação.
-
-
-\subsection{Incertezas paramétricas}
-
-% Explicar por que os parâmetros do modelo farmacocinético
-% podem apresentar incertezas.
-%
-% Definir como essas incertezas serão representadas
-% matematicamente no trabalho.
-
-
-\subsection{Desigualdades matriciais lineares}
-
-% Apresentar o conceito de LMI.
-%
-% Explicar sua utilização na formulação de problemas
-% de controle convexo.
-%
-% Apresentar somente a teoria necessária para compreender
-% o projeto desenvolvido posteriormente.
-
-
-\subsection{Controle robusto}
-
-% Explicar o conceito de robustez.
-%
-% Relacionar:
-%
-% incerteza do modelo
-%       ↓
-% conjunto de modelos possíveis
-%       ↓
-% controlador robusto
-%       ↓
-% garantia de estabilidade/desempenho.
-
-
-\subsection{Implementação embarcada e Hardware-in-the-Loop}
-
-% Apresentar o conceito de Hardware-in-the-Loop utilizado
-% neste trabalho.
-%
-% Explicar a separação entre:
-% - dispositivo responsável pela planta;
-% - dispositivo responsável pelo controlador;
-% - comunicação entre os dispositivos.
-
-
-% ============================================================
-% 4. METODOLOGIA
-% ============================================================
-
-\section{Metodologia}
-
-% Este capítulo deve explicar COMO o trabalho foi realizado.
-
-
-\subsection{Modelo farmacocinético utilizado}
-
-% Apresentar o modelo escolhido.
-%
-% Equações diferenciais.
-% Estados.
-% Entradas.
-% Saídas.
-% Parâmetros.
-
-
-\subsection{Formulação do problema de controle}
-
-% Definir matematicamente:
-% - planta;
-% - referência;
-% - erro;
-% - variável de controle;
-% - requisitos de desempenho.
-
-
-\subsection{Modelagem das incertezas}
-
-% Mostrar como os parâmetros incertos serão representados.
-
-
-\subsection{Projeto do rastreador robusto}
-
-% Apresentar a estratégia de projeto.
-%
-% Não apenas mostrar o resultado:
-% explicar a sequência matemática que leva às LMIs.
-
-
-\subsection{Formulação das condições LMIs}
-
-% Apresentar as LMIs utilizadas no projeto.
-%
-% Mostrar as variáveis de decisão.
-% Mostrar as restrições.
-% Explicar como a solução é obtida.
-
-
-\subsection{Simulação computacional}
-
-% Descrever:
-% - Matlab;
-% - Simulink, se utilizado;
-% - condições iniciais;
-% - referências;
-% - valores dos parâmetros;
-% - cenários de incerteza;
-% - métricas avaliadas.
-
-
-\subsection{Arquitetura da plataforma embarcada}
-
-% Inserir uma figura da arquitetura geral.
-%
-% Exemplo:
-%
-% Microcontrolador 1
-%      ↓
-% Emulação da planta
-%      ↓
-% Comunicação
-%      ↓
-% Microcontrolador 2
-%      ↓
-% Controlador
-%      ↓
-% Ação de controle
-%      ↺
-
-
-\subsection{Implementação nos microcontroladores}
-
-% Descrever:
-% - microcontroladores utilizados;
-% - linguagem;
-% - bibliotecas;
-% - frequência de execução;
-% - representação numérica;
-% - comunicação.
-
-
-\subsection{Procedimento de validação}
-
-% Explicar como os experimentos foram realizados.
-%
-% Definir os cenários de teste e os critérios utilizados
-% para comparação com a simulação.
-
-
-% ============================================================
-% 5. DESENVOLVIMENTO E IMPLEMENTAÇÃO
-% ============================================================
-
-\section{Desenvolvimento e Implementação}
-
-% Aqui começa efetivamente o desenvolvimento do seu projeto.
-
-
-\subsection{Implementação do modelo da planta}
-
-% Mostrar como o modelo matemático foi transformado
-% em algoritmo executável.
-
-
-\subsection{Implementação do controlador}
-
-% Mostrar como o controlador obtido pelas LMIs foi
-% implementado na plataforma embarcada.
-
-
-\subsection{Implementação da comunicação}
-
-% Descrever o protocolo e a estrutura dos dados trocados.
-
-
-\subsection{Integração da malha fechada}
-
-% Mostrar o sistema completo funcionando.
-%
-% Planta → comunicação → controlador → ação de controle.
-
-
-\subsection{Plataforma experimental}
-
-% Fotos, diagrama elétrico, arquitetura e características
-% do hardware.
-
-
-\subsection{Execução dos ensaios}
-
-% Descrever os testes efetivamente realizados.
-
-
-% ============================================================
-% 6. RESULTADOS E DISCUSSÃO
-% ============================================================
-
-\section{Resultados e Discussão}
-
-
-\subsection{Resultados da síntese do controlador}
-
-% Mostrar:
-% - solução das LMIs;
-% - ganhos obtidos;
-% - parâmetros relevantes;
-% - condições de projeto.
-
-
-\subsection{Resultados de simulação}
-
-% Gráficos:
-% - referência × saída;
-% - erro;
-% - ação de controle;
-% - estados;
-% - diferentes condições de incerteza.
-
-
-\subsection{Resultados da implementação embarcada}
-
-% Apresentar os resultados obtidos no hardware.
-
-
-\subsection{Comparação entre simulação e emulação}
-
-% Comparar quantitativamente:
-%
-% Simulação × Hardware
-%
-% Erro de rastreamento
-% Tempo de resposta
-% Sobressinal, se aplicável
-% Ação de controle
-% Comportamento diante das incertezas
-
-
-\subsection{Análise da robustez}
-
-% Testar diferentes valores dos parâmetros incertos.
-%
-% Mostrar se o comportamento esperado do controlador
-% permanece válido.
-
-
-\subsection{Limitações e considerações práticas}
-
-% Discutir:
-% - limitações do modelo;
-% - limitações do hardware;
-% - limitações da comunicação;
-% - limitações computacionais;
-% - diferenças entre simulação e sistema embarcado.
-
-
-% ============================================================
-% 7. CONCLUSÃO
-% ============================================================
-
+\subsubsection{Arquitetura da plataforma embarcada}
+
+Depois da simulação em Simulink, a malha de controle foi reproduzida em uma plataforma embarcada \cite{maradiaga2026repositorio}, composta por dois microcontroladores ESP32, programados em linguagem C por meio da \textit{framework} ESP-IDF. Nesta emulação, a lei de controle e a planta foram executados em unidades computacionais distintas, conectadas por meio de uma interface UART.
+
+A arquitetura adotada é apresentada na Figura~\ref{fig:arquitetura_embarcada}. A cada tick de relógio, o ESP32 controlador calcula a ação de controle $u(k)$ e a encaminha ao ESP32 planta através de um pacote UART. A planta recebe o pacote, processa os dados, atualiza seu estado interno e envia a saída $y(k)$ ao controlador por meio de um outro pacote, fechando a malha de realimentação.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+ font=\small, >=Latex,
+ unit/.style={draw=navyblue,fill=lightblue,rounded corners=3pt,align=center,minimum width=4.0cm,minimum height=1.45cm,line width=.75pt},
+ pc/.style={draw=black!70,fill=warmgray,rounded corners=3pt,align=center,minimum width=6.5cm,minimum height=1.55cm,line width=.75pt},
+ smallunit/.style={draw=black!65,fill=white,rounded corners=2pt,align=center,minimum width=3.4cm,minimum height=.9cm},
+ link/.style={-{Latex[length=2.2mm]},thick},
+ wireless/.style={{Latex[length=2.2mm]}-{Latex[length=2.2mm]},densely dashed,thick,navyblue}
+]
+\node[unit] (ctrl) at (-4,2.35) {\textbf{ESP32 -- Controlador}\\ Implementa o PI discreto\\\footnotesize $f=100\,\mathrm{Hz}$};
+\node[unit] (plant) at (4,2.35) {\textbf{ESP32 -- Planta}\\ Emula o modelo farmacocinético\\\footnotesize Atualização a cada pacote válido};
+\node[smallunit] (pots) at (4,4.55) {Três potenciômetros\\\footnotesize ADC1: CH4, CH6 e CH7};
+\draw[link] (pots.south)--(plant.north);
+\draw[link] ([yshift=3mm]ctrl.east) -- node[above,font=\scriptsize]{UART: $u(k)$} ([yshift=3mm]plant.west);
+\draw[link] ([yshift=-3mm]plant.west) -- node[below,font=\scriptsize]{UART: $y(k)$} ([yshift=-3mm]ctrl.east);
+\node[pc] (laptop) at (0,-1.35) {\textbf{Laptop}\\ Hotspot Wi-Fi e broker Mosquitto\\ Interface de supervisão em Node-RED};
+\draw[wireless] (laptop.north west) -- node[left,sloped,above,font=\scriptsize]{MQTT / Wi-Fi} (ctrl.south);
+\draw[wireless] (laptop.north east) -- node[right,sloped,above,font=\scriptsize]{MQTT / Wi-Fi} (plant.south);
+\node[align=center,font=\scriptsize,text=black!65] at (0,-2.75) {Os dois ESP32 são energizados através da alimentação USB;\\ cada ESP32 abre uma porta serial para consultar os logs internos.};
+\end{tikzpicture}
+\caption{Arquitetura da plataforma de emulação embarcada.}
+\label{fig:arquitetura_embarcada}
+\end{figure}
+
+Além da comunicação UART, ambos os ESP32 se conectam, via Wi-Fi, a uma rede fornecida pelo \textit{hotspot} da laptop. Através dessa comunicação Wi-Fi o computador permite a conexão com o broker MQTT Mosquitto e com a interface de supervisão desenvolvida em Node-RED. Os ESP32s foram energizados por meio das portas USB da laptop durante a montagem e os ensaios, dado que essas conexões USB foram utilizadas também para consultar os logs de depuração durante o seu desenvolvimento.
+
+A montagem física pode ser vista na Figura~\ref{fig:montagem_esp32}. Os pinos TX e RX dos ESP32s foram ligados diretamente, com referência (GND) comum. Os três potenciômetros foram conectados aos GPIOs associados ao canal 4, 6 e 7 do ADC1 do ESP32 planta, e através deles é possível ajustar os parâmetros incertos do modelo. A Figura~\ref{fig:esquematico_esp32} apresenta as conexões elétricas dos microcontroladores e dos potenciômetros.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.88\textwidth]{montagem_esp32.jpg}
+\caption{Montagem experimental da plataforma, com os dois módulos ESP32, a protoboard e os três potenciômetros utilizados para modificar os parâmetros da planta.}
+\label{fig:montagem_esp32}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.94\textwidth]{esquematico_esp32.png}
+\caption{Esquemático das conexões da plataforma, incluindo a comunicação serial entre os ESP32 e as entradas analógicas associadas aos potenciômetros.}
+\label{fig:esquematico_esp32}
+\end{figure}
+
+\subsubsection{Comunicação UART}
+
+A comunicação entre controlador e planta foi implementada por UART, configurada com um baud rate de $115200 \mathrm{bit/s}$, $8$ bits de dados, sem bit paridade e um bit de parada. Para facilitar a sincronização entre dispositivos, foi definido um protocolo binário próprio, onde cada pacote possui um tamanho fixo de $15$ bytes. Como ilustrado na Figura~\ref{fig:pacotes_uart}, em cada pacote estão armazenados um cabeçalho de $2$ bytes, um contador de $8$ bytes, um campo de dados de $4$ bytes e um XOR Checksum de $1$ byte.
+
+O cabeçalho, \cod{0xFF66} para o controlador e \cod{0xAA55} para a planta, serve para identificar o microcontrolador de origem e para delimitar o começo de um novo pacote. O contador auxilia na identificação de mensagens já processadas, descartando mensagems repetidas, enquanto o \textit{checksum} permite verificar a integridade do conteúdo recebido. As estruturas foram definidas como compactadas (\cod{__attribute__((packed))}) de modo a evitar problemas devido aos bytes de \textit{padding} entre os campos.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+ font=\small,
+ packet/.style={draw=navyblue,line width=.7pt,minimum height=1.15cm,align=center,inner sep=2pt},
+ note/.style={font=\scriptsize,align=center,text=black!65}
+]
+\node[anchor=west,font=\bfseries] at (0,2.25) {Controlador $\rightarrow$ Planta};
+\node[packet,fill=lightblue,minimum width=2.1cm,anchor=west] (h1) at (0,1.2) {Cabeçalho\\\texttt{0xFF66}};
+\node[packet,minimum width=3.0cm,anchor=west] (c1) at (h1.east) {Contador\\\texttt{uint64\_t}};
+\node[packet,fill=warmgray,minimum width=2.45cm,anchor=west] (p1) at (c1.east) {Controle $u(k)$\\\texttt{float}};
+\node[packet,minimum width=2.0cm,anchor=west] (x1) at (p1.east) {Checksum\\XOR};
+\node[note,below=2mm of h1] {2 bytes};
+\node[note,below=2mm of c1] {8 bytes};
+\node[note,below=2mm of p1] {4 bytes};
+\node[note,below=2mm of x1] {1 byte};
+\node[anchor=west,font=\bfseries] at (0,-.35) {Planta $\rightarrow$ Controlador};
+\node[packet,fill=lightblue,minimum width=2.1cm,anchor=west] (h2) at (0,-1.4) {Cabeçalho\\\texttt{0xAA55}};
+\node[packet,minimum width=3.0cm,anchor=west] (c2) at (h2.east) {Contador\\\texttt{uint64\_t}};
+\node[packet,fill=warmgray,minimum width=2.45cm,anchor=west] (p2) at (c2.east) {Saída $y(k)$\\\texttt{float}};
+\node[packet,minimum width=2.0cm,anchor=west] (x2) at (p2.east) {Checksum\\XOR};
+\node[note,below=2mm of h2] {2 bytes};
+\node[note,below=2mm of c2] {8 bytes};
+\node[note,below=2mm of p2] {4 bytes};
+\node[note,below=2mm of x2] {1 byte};
+\end{tikzpicture}
+\caption{Estrutura dos pacotes UART. Definidos em utils.h.}
+\label{fig:pacotes_uart}
+\end{figure}
+
+Duas tasks FreeRTOS, presentes em cada módulo, recebem e processam os pacotes: \cod{uart_rx_task()} e \cod{uart_process_task()}. A task de RX aguarda o recebimento de uma interrupção, setada pelo driver de UART, transfere os bytes recebidos para um buffer de análise e procura o cabeçalho do pacote. Uma vez identificado, verifica o \textit{checksum} e caso a mensagem for válida, encaminha-a para a task de processamento. Por sua vez, a task de processamento recebe a mensagem, verifica se é uma mensagem repetida, e dependendo do módulo faz tarefas diferentes. No controlador, a task armazena localmente a saída da planta; na planta, a task atualiza o estado interno do modelo.
+
+\subsubsection{Organização do firmware}
+
+O firmware foi estruturado em módulos separados para o controlador, a planta e o driver ADC. Para facilitar seu desenvolvimento todos os módulos compartilham o mesmo ambiente de trabalho, e por meio de uma opção de configuração do ESP-IDF, o usuario seleciona se o binário a ser compilado é da planta ou do controlador.
+
+Devido à plataforma embarcada ter sido desenvolvida na framework ESP-IDF, a aplicação utiliza FreeRTOS de forma nativa, pelo qual foram usar tasks e callbacks de temporização FreeRTOS para o execução de diversas tarefas no código. Por conta de se tratar de uma aplicação com diversos contextos de execução, \textit{qeues} e \textit{mutexes} são empregados para transferir mensagens entre tasks e proteger variáveis compartilhadas.
+
+Na Tabela~\ref{tab:tarefas_embarcadas} podem ser visualizadas as principais tasks e callback desenvolvidas. Todas as frequências informadas podem ser modificadas através da interfacede configuração do ESP-IDF, o \textit{menuconfig}.
+
+\begin{table}[H]
+    \centering
+    \caption{Rotinas implementadas para os módulos do controlador e planta, e para o driver ADC.}
+    \label{tab:tarefas_embarcadas}
+    \fontsize{7.8}{9.6}\selectfont
+    \renewcommand{\arraystretch}{1.22}
+    \begin{tabularx}{\textwidth}{@{}p{1.6cm}p{4.0cm}p{2.35cm}X@{}}
+        \toprule
+        \textbf{Módulo} & \textbf{Callback associada} & \textbf{Acionamento} & \textbf{Função} \\
+        \midrule
+        Controlador & \cod{controller_timer_callback()} & Temporizador periódico & Itera a malha de controle, atualizando o PI e enviando $u(k)$. \\
+        Controlador & \cod{uart_rx_task()} & Interrupção do UART & Recebe os dados da FIFO de RX do UART, encaminha pacotes validos para \cod{uart_process_task()}. \\
+        Controlador & \cod{uart_process_task()} & Dado novo na queue FreeRTOS & Processa o pacote recebido, atualizando a variavel $y$ interna. \\
+        Controlador & \cod{mqtt_timer_callback()} & Temporizador periódico (20Hz) & Publica nos tópicos \cod{ctrl/state} e \cod{ctrl/ref}. \\
+        Controlador & \cod{mqtt_event_handler()} & Novo evento do cliente MQTT & Depuração da comunicação MQTT e recepção de dados do tópico \cod{input/ref}. \\
+        \midrule
+        Planta & \cod{uart_rx_task()} & Interrupção do UART & Recebe os dados da FIFO de RX do UART, encaminha pacotes validos para \cod{uart_process_task()}. \\
+        Planta & \cod{uart_process_task()} & Dado novo na queue FreeRTOS & Processa o pacote recebido, atualiza o modelo farmacocinético e envia $y(k)$. \\
+        Planta & \cod{plant_internals_callback()} & Temporizador periódico (10Hz) & Lê o estado dos canais ADC e atualiza os parâmetros $\gamma_{ob}$, $\mu_m$ e $\mu_o$. \\
+        Planta & \cod{mqtt_timer_callback()} & Temporizador periódico (20Hz) & Publicação nos tópicos \cod{plant/state} e \cod{plant/internals}. \\
+        Planta & \cod{mqtt_event_handler()} & Novo evento do cliente MQTT & Depuração da comunicação MQTT. \\
+        \cdashlinelr{1-4}
+        Driver ADC & \cod{conv_done_cb()} & Interrupção do ADC & Notifica a tarefa de aquisição quando há suficientes amostras disponíveis no buffer do ADC. \\
+        Driver ADC & \cod{adc_read_task()} & Notificação de task FreeRTOS & Lê e processa as amostras do ADC1 em modo contínuo. \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsubsection{Principio de funcionamento}
+
+Um temporizador periódico, configurado em $100\mathrm{Hz}$ nominalmente, aciona a callback de processamento do controlador: \cod{controller_timer_callback()}. A cada \textit{tick}, o controlador atualiza o controlador PI e gera a nova ação de controle $u(k)$. Dado que é fisicamente impossível administrar uma concentração negativa de remédio, a ação de controle é limitada inferiormente a zero. Diferente do controlador, a planta atualiza seu estado interno através da task \cod{uart_process_task()}, a cada recebimento de um novo pacote valido do controlador. Assim, a frequência de atualização da planta depende da taxa de atualização do controlador. Para os testes com diferentes frequências foi suficiente modificar a frequência do controlador.
+
+Por meio da rede Wi-Fi disponibilizada pela laptop os microcontroladores conseguem se conectar no broker Mosquitto, que permite a comunicação dos controladores com a dashboard por meio do protocolo MQTT. Internamente, a recepção de dados é controlada pela callback \cod{mqtt_event_handler()}, enquanto a publicação é acionada por um temporizador periodico, que alerta \cod{mqtt_timer_callback()}. Em uso, o ESP32 controlador recebe a referência no tópico \cod{input/ref} e publica os dados de controle no tópico \cod{ctrl/state}. Por sua vez, o ESP32 planta publica seus estados e saída em \texttt{plant/state}, além dos parâmetros internos variáveis em \texttt{plant/internals}. A publicação periódica dos dados ocorre nominal a $20\,\mathrm{Hz}$ em ambos os modulos.
+
+A dashboard foi desenvolvida através das ferramentas Node-RED e FlowFuse. O fluxo da aplicação, ilustrado na Figura~\ref{fig:fluxo_nodered}, implementa nós de interface com o protocolo MQTT, os quais são processados pelos nós de "função" para compor a interface gráfica, que pode ser vista na Figura~\ref{fig:dashboard_nodered}. 
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.92\textwidth]{fluxo_nodered.jpg}
+\caption{Fluxo de Node-RED}
+\label{fig:fluxo_nodered}
+\end{figure}
+
+Visando testar a robustez da malha de controle projetada, os parâmetros variáveis do modelo farmacocinético podem ser modificados através do perirferico de ADC do ESP32 planta. Foram utilizados três potenciômetros alimentados em $3\mathrm{V}3$, conectados às entradas do periférico ADC1 do ESP32 planta. Os canais \cod{ADC1_CH4}, \cod{ADC1_CH6} e \cod{ADC1_CH7} são associados, respectivamente, aos parâmetros $\gamma_{ob}$, $\mu_m$ e $\mu_o$. Optou-se pelo ADC1 em razão da utilização simultânea do Wi-Fi, dado que no ESP32 o ADC2 é utilizado pelo API do sistema de comunicação sem fio.
+
+O driver foi implementado utilizando o modo contínuo do ADC. Quando o buffer de conversão fica preenchido, o ADC gera uma interrupção e executa callback \cod{conv_done_cb()}, notificando a task \cod{adc_read_task()}. Essa task processa as amostras e calcula valores médios para cada canal. Em um contexto independete, numa frequência de $10 \mathrm{Hz}$ a callback \cod{plant_internals_callback()} é acionada. Essa callback utiliza as leituras mais recentes do ADC ($a_4$,$a_6$ e $a_7$) para atualizar os parâmetros por meio das equações \eqref{eq:conversao_adc_parametros}, que associam os bits do ADC ($0 - 4095$) aos intervalos especificados no modelo: $\gamma_{ob}\in[0{,}037;0{,}040]$, $\mu_m\in[0{,}10;0{,}20]$ e $\mu_o\in[0{,}10;0{,}15]$.
+
+\begin{equation}
+    \begin{aligned}
+        \gamma_{ob} &= 0{,}037 + \frac{0{,}003}{4095}\,a_4,\\
+        \mu_m &= 0{,}1 + \frac{0{,}1}{4095}\,a_6,\\
+        \mu_o &= 0{,}1 + \frac{0{,}05}{4095}\,a_7,
+    \end{aligned}
+    \label{eq:conversao_adc_parametros}
+\end{equation}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.96\textwidth]{dashboard_nodered.jpg}
+\caption{Dashboard desenvolvida com Node-RED e FlowFuse Dashboard para ajuste da referência e supervisão da malha de controle.}
+\label{fig:dashboard_nodered}
+\end{figure}
+
+
+% ----------------------------------------------------------
+\newpage
+\section{Resultados e discussão}
+\label{sec:resultados}
+% ----------------------------------------------------------
+
+\newpage
 \section{Conclusão}
+\label{sec:conclusao}
 
-% Retomar:
-% - problema;
-% - objetivo;
-% - metodologia;
-% - principais resultados;
-% - contribuição do trabalho.
-%
-% Não introduzir resultados que não tenham sido apresentados
-% anteriormente.
-
-
-\subsection{Trabalhos futuros}
-
-% Possíveis extensões:
-% - comunicação remota;
-% - implementação em hardware mais próximo de uma aplicação real;
-% - novos modelos farmacocinéticos;
-% - outras estratégias de controle;
-% - testes com maior variedade de incertezas;
-% - integração com sistemas de monitoramento.
-
-
-% ============================================================
-% REFERÊNCIAS
-% ============================================================
-
-\section{Referências}
-
-
-
-% Inicialmente você pode inserir as referências manualmente.
-%
-% Posteriormente, recomendo migrar para BibTeX/BibLaTeX
-% para facilitar a organização.
-
-
-% ============================================================
-% APÊNDICE
-% ============================================================
-
-\appendix
-
-\section{Código do controlador}
-
-% Inserir posteriormente, se necessário.
-
-
-\section{Código da implementação embarcada}
-
-% Inserir posteriormente, se necessário.
-
-
-% ============================================================
-% ANEXO
-% ============================================================
-
-\section{Materiais complementares}
-
-% Documentos, tabelas, informações externas etc.
-
+\printbibliography[title={Referências}]
 
 \end{document}
