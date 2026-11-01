@@ -15,14 +15,21 @@ menu "Controller Module Configuration"
             Defines task priority for the data reception UART task. 
             Should be of higher priority than the process task.
 
-        config CONTROLLER_UART_PROCESS_STACK_SIZE
+    config CONTROLLER_UART_RX_FIFO_THRESHOLD
+        int "UART RX FIFO threshold"
+        range 1 124
+        default 30
+        help
+            Defines threshold for RX FIFO full interrupt.
+
+    config CONTROLLER_UART_PROCESS_STACK_SIZE
             int "Controller module task stack size"
             range 1024 16384
             default 4096
             help
                 Defines stack size for the data processing UART task.
 
-        config CONTROLLER_UART_PROCESS_TASK_PRIORITY
+    config CONTROLLER_UART_PROCESS_TASK_PRIORITY
         int "UART PROCESS task priority"
         range 1 10
         default 9

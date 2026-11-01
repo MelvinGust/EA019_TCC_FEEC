@@ -54,7 +54,7 @@
         "z": "35ad271e",
         "group": "1387a5f8",
         "name": "Reference input",
-        "label": "Reference (ctrl/ref)",
+        "label": "Reference (input/ref)",
         "order": 1,
         "width": "6",
         "height": "1",
@@ -63,16 +63,19 @@
         "min": 0,
         "max": 20,
         "step": 0.1,
-        "tooltip": "Setpoint sent to controller ESP32 (0–20 to match the plant-output graph)",
-        "delay": 300,
+        "tooltip": "Send reference to controller",
+        "delay": "100",
         "passthru": false,
-        "sendOnBlur": true,
+        "sendOnDelay": true,
+        "sendOnBlur": false,
         "sendOnEnter": true,
         "className": "",
+        "clearable": false,
         "icon": "send",
         "iconPosition": "left",
+        "iconInnerPosition": "inside",
         "spinner": true,
-        "x": 390,
+        "x": 290,
         "y": 620,
         "wires": [
             [
@@ -129,6 +132,10 @@
         "xAxisProperty": "timestamp",
         "xAxisPropertyType": "msg",
         "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
         "yAxisLabel": "u",
         "yAxisProperty": "payload",
         "yAxisPropertyType": "msg",
@@ -140,7 +147,7 @@
         "pointShape": "circle",
         "pointRadius": 2,
         "showLegend": true,
-        "removeOlder": 300,
+        "removeOlder": "10",
         "removeOlderUnit": "1",
         "removeOlderPoints": "",
         "colors": [
@@ -148,7 +155,11 @@
             "#ef5350",
             "#66bb6a",
             "#ffa726",
-            "#ab47bc"
+            "#ab47bc",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000"
         ],
         "textColor": [
             "#666666"
@@ -157,9 +168,11 @@
         "gridColor": [
             "#e0e0e0"
         ],
+        "gridColorDefault": true,
         "width": "12",
         "height": "6",
         "className": "",
+        "interpolation": "linear",
         "x": 390,
         "y": 260,
         "wires": [
@@ -181,6 +194,10 @@
         "xAxisProperty": "timestamp",
         "xAxisPropertyType": "msg",
         "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
         "yAxisLabel": "Reference / y",
         "yAxisProperty": "payload",
         "yAxisPropertyType": "msg",
@@ -192,7 +209,7 @@
         "pointShape": "circle",
         "pointRadius": 2,
         "showLegend": true,
-        "removeOlder": 300,
+        "removeOlder": "10",
         "removeOlderUnit": "1",
         "removeOlderPoints": "",
         "colors": [
@@ -200,7 +217,11 @@
             "#ef5350",
             "#66bb6a",
             "#ffa726",
-            "#ab47bc"
+            "#ab47bc",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000"
         ],
         "textColor": [
             "#666666"
@@ -209,11 +230,13 @@
         "gridColor": [
             "#e0e0e0"
         ],
+        "gridColorDefault": true,
         "width": "12",
         "height": "6",
         "className": "",
-        "x": 390,
-        "y": 500,
+        "interpolation": "linear",
+        "x": 780,
+        "y": 460,
         "wires": [
             []
         ]
@@ -224,10 +247,16 @@
         "z": "35ad271e",
         "group": "983cc445",
         "order": 1,
-        "width": "3",
+        "width": "1",
         "height": "1",
         "name": "x_b display",
         "label": "x_b",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
         "className": "",
         "value": "payload",
         "valueType": "msg",
@@ -241,10 +270,16 @@
         "z": "35ad271e",
         "group": "983cc445",
         "order": 2,
-        "width": "3",
+        "width": "1",
         "height": "1",
         "name": "x_m display",
         "label": "x_m",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
         "className": "",
         "value": "payload",
         "valueType": "msg",
@@ -258,10 +293,16 @@
         "z": "35ad271e",
         "group": "983cc445",
         "order": 3,
-        "width": "3",
+        "width": "1",
         "height": "1",
         "name": "x_o display",
         "label": "x_o",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
         "className": "",
         "value": "payload",
         "valueType": "msg",
@@ -275,10 +316,16 @@
         "z": "35ad271e",
         "group": "983cc445",
         "order": 4,
-        "width": "3",
+        "width": "1",
         "height": "1",
         "name": "x_i display",
         "label": "x_i",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
         "className": "",
         "value": "payload",
         "valueType": "msg",
@@ -349,21 +396,18 @@
         "type": "function",
         "z": "35ad271e",
         "name": "Publish and remember reference",
-        "func": "const reference = Number(msg.payload);\nif (!Number.isFinite(reference)) { node.warn(\"Reference must be a finite number\"); return null; }\nflow.set(\"ctrl_ref\", reference);\nreturn [\n  {topic: \"ctrl/ref\", payload: String(reference)},\n  {topic: \"Reference\", payload: reference, timestamp: Date.now()}\n];",
-        "outputs": 2,
+        "func": "const reference = Number(msg.payload);\nif (!Number.isFinite(reference)) { node.warn(\"Reference must be a finite number\"); return null; }\nflow.set(\"ctrl_ref\", reference);\nreturn [\n  {topic: \"ctrl/ref\", payload: String(reference)},\n];",
+        "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 650,
+        "x": 550,
         "y": 620,
         "wires": [
             [
                 "54d71ff6"
-            ],
-            [
-                "444ea1a2"
             ]
         ]
     },
@@ -371,18 +415,18 @@
         "id": "54d71ff6",
         "type": "mqtt out",
         "z": "35ad271e",
-        "name": "Publish ctrl/ref",
-        "topic": "ctrl/ref",
+        "name": "Publish input/ref",
+        "topic": "input/ref",
         "qos": "",
-        "retain": "",
+        "retain": "true",
         "respTopic": "",
         "contentType": "",
         "userProps": "",
         "correl": "",
         "expiry": "",
         "broker": "541a4b79",
-        "x": 900,
-        "y": 600,
+        "x": 820,
+        "y": 620,
         "wires": []
     },
     {
@@ -392,8 +436,173 @@
         "name": "Before deploying: edit MQTT broker host/credentials. Reference input and plant chart use 0–20; controller output chart auto-scales.",
         "info": "",
         "x": 440,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "bb88cb9305af21eb",
+        "type": "mqtt in",
+        "z": "35ad271e",
+        "name": "Plant internals: plant/internals",
+        "topic": "plant/internals",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "541a4b79",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 280,
+        "y": 720,
+        "wires": [
+            [
+                "81bed67390197d03"
+            ]
+        ]
+    },
+    {
+        "id": "81bed67390197d03",
+        "type": "function",
+        "z": "35ad271e",
+        "name": "Parse Plant Internals",
+        "func": "let d = msg.payload;\nif (typeof d === \"string\") { try { d = JSON.parse(d); } catch (e) { node.warn(\"Invalid JSON on plant/internals\"); return null; } }\nif (!d || ![\"y_ob\", \"u_m\", \"u_o\"].every(k => typeof d[k] === \"number\" && Number.isFinite(d[k]))) { node.warn(\"Unexpected plant/internals payload\"); return null; }\nreturn [\n  {payload: d.y_ob},\n  {payload: d.u_m},\n  {payload: d.u_o}\n];",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 720,
+        "wires": [
+            [
+                "6f6abe42a6b287ed"
+            ],
+            [
+                "2a19b595db4338af"
+            ],
+            [
+                "481b763dd6b5c059"
+            ]
+        ]
+    },
+    {
+        "id": "6f6abe42a6b287ed",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "fc875953fa71be7d",
+        "order": 1,
+        "width": "1",
+        "height": "1",
+        "name": "y_ob display",
+        "label": "y_ob",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 830,
         "y": 700,
         "wires": []
+    },
+    {
+        "id": "2a19b595db4338af",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "fc875953fa71be7d",
+        "order": 2,
+        "width": "1",
+        "height": "1",
+        "name": "u_m display",
+        "label": "u_m",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 830,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "481b763dd6b5c059",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "fc875953fa71be7d",
+        "order": 3,
+        "width": "1",
+        "height": "1",
+        "name": "u_o display",
+        "label": "u_o",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 830,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "f3bb88f0c62cc326",
+        "type": "function",
+        "z": "35ad271e",
+        "name": "Send reference directly",
+        "func": "const reference = flow.get(\"ctrl_ref\");\n\nif (reference === undefined) {\n    return null;\n}\n\nmsg.topic = \"Reference\";\nmsg.payload = reference;\nmsg.timestamp = Date.now();\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 520,
+        "wires": [
+            [
+                "444ea1a2"
+            ]
+        ]
+    },
+    {
+        "id": "7aa1e3a594bce137",
+        "type": "inject",
+        "z": "35ad271e",
+        "name": "Reference Update Trigger",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "0.1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 520,
+        "wires": [
+            [
+                "f3bb88f0c62cc326"
+            ]
+        ]
     },
     {
         "id": "541a4b79",
@@ -456,14 +665,30 @@
         "type": "ui-group",
         "name": "Expanded State Vector",
         "page": "192097cb",
-        "width": "12",
-        "height": "1",
+        "width": "2",
+        "height": "4",
         "order": 3,
         "showTitle": true,
         "className": "",
         "visible": "true",
         "disabled": "false",
-        "groupType": "default"
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "fc875953fa71be7d",
+        "type": "ui-group",
+        "name": "Plant Internals",
+        "page": "192097cb",
+        "width": "2",
+        "height": "3",
+        "order": 4,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "true",
+        "groupType": "default",
+        "tab": ""
     },
     {
         "id": "192097cb",
@@ -526,7 +751,7 @@
         }
     },
     {
-        "id": "9eb27977ea286f96",
+        "id": "76471da19aa6470c",
         "type": "global-config",
         "env": [],
         "modules": {

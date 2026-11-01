@@ -427,7 +427,7 @@ static esp_err_t uart_init(void)
     }
 
     // Configure UART_DATA event to happen with 100 bytes on the RX buffer.
-    esp_err = uart_set_rx_full_threshold(CONFIG_UART_PORT_NUM, 100);
+    esp_err = uart_set_rx_full_threshold(CONFIG_UART_PORT_NUM, CONFIG_CONTROLLER_UART_RX_FIFO_THRESHOLD);
     if( esp_err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set rx full threshold");
         return esp_err;
@@ -542,7 +542,13 @@ static void uart_rx_task(void *pvParameters)
                         // * INITIAL DATA RECEPTION
                         // Read everything we have in our UART
                         uint8_t temp[100]; // Temporary buffer to hold the incoming data.
-                        int len = uart_read_bytes(CONFIG_UART_PORT_NUM, temp, sizeof(temp), pdMS_TO_TICKS(100));
+
+                        // Depending on the amount of data received, fill (or not) the buffer
+                        size_t data_size = event.size;
+                        if(data_size > sizeof(temp)){
+                            data_size = sizeof(temp);
+                        }
+                        int len = uart_read_bytes(CONFIG_UART_PORT_NUM, temp, data_size, pdMS_TO_TICKS(20));
 
                         // Check if uart_read_bytes ran properly.
                         if(len == 0){

@@ -15,6 +15,13 @@ menu "Plant Module Configuration"
             Defines task priority for the data reception UART task. 
             Should be of higher priority than the main PLANT task.
 
+    config PLANT_UART_RX_FIFO_THRESHOLD
+        int "UART RX FIFO threshold"
+        range 1 124
+        default 30
+        help
+            Defines threshold for RX FIFO full interrupt.
+
     config PLANT_UART_PROCESS_STACK_SIZE
         int "Plant module task stack size"
         range 1024 16384
