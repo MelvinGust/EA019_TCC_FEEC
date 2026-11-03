@@ -430,16 +430,6 @@
         "wires": []
     },
     {
-        "id": "c5b01b17",
-        "type": "comment",
-        "z": "35ad271e",
-        "name": "Before deploying: edit MQTT broker host/credentials. Reference input and plant chart use 0–20; controller output chart auto-scales.",
-        "info": "",
-        "x": 440,
-        "y": 840,
-        "wires": []
-    },
-    {
         "id": "bb88cb9305af21eb",
         "type": "mqtt in",
         "z": "35ad271e",
@@ -559,7 +549,7 @@
         "id": "f3bb88f0c62cc326",
         "type": "function",
         "z": "35ad271e",
-        "name": "Send reference directly",
+        "name": "Update reference for graph",
         "func": "const reference = flow.get(\"ctrl_ref\");\n\nif (reference === undefined) {\n    return null;\n}\n\nmsg.topic = \"Reference\";\nmsg.payload = reference;\nmsg.timestamp = Date.now();\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
@@ -567,7 +557,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 450,
+        "x": 460,
         "y": 520,
         "wires": [
             [
@@ -751,7 +741,7 @@
         }
     },
     {
-        "id": "76471da19aa6470c",
+        "id": "72d74ba2a563cdbe",
         "type": "global-config",
         "env": [],
         "modules": {
