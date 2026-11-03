@@ -40,7 +40,7 @@ D = [0;
     0];
 
 %% Closed Loop Variables
-r_val = 10;
+r_val = 15;
 Ki = 2.2578;
 Kp = -16.6825;
 
@@ -108,7 +108,7 @@ ylim([0 r_val + 2]);
 
 % Adds the rectangle to the graph
 zoom_xlim = [0.8 2.5];
-zoom_ylim = [7 10.2];
+zoom_ylim = [12 15.2];
 rectangle('Position', ...
     [zoom_xlim(1), zoom_ylim(1), ...
      diff(zoom_xlim), diff(zoom_ylim)], ...

@@ -1,0 +1,9 @@
+\section{Objetivos}
+\label{sec:objetivos}
+
+O objetivo deste trabalho é projetar e validar um rastreador de referencia capaz de assegurar a estabilidade do modelo compartimental de absorção de fármacos escolhido, considerando incertezas paramétricas na dinâmica da planta. 
+Os ganhos da lei de controle PI associada ao rastreador serão projetos por meio de um procedimento iterativo baseado em LMIs, cujo resultado permitirá avaliar o comportamento do sistema por meio de simulação e por meio de emulação em uma plataforma embarcada.
+
+De maneira específica, pretende-se formular a equação do sistema aumentado com ação integral; resolver numericamente as condições LMIs para o projeto do rastreador; analisar a estabilidade do rastreador para distintos valores dos parâmetros incertos no MATLAB/Simulink; e emular a planta e controlador em dois ESP32. Os resultados da emulação são confrontados com o comportamento observado nas simulações, de modo a avaliar a realização prática do rastreamento de referência.
+
+\newpage
