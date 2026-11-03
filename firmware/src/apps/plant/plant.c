@@ -143,6 +143,9 @@ static void mqtt_timer_callback(void *arg)
 
         esp_mqtt_client_publish(local_data.mqtt_client, "plant/internals", internals_msg, len, 1, 0);
     }
+
+    // ! DEBUG Cleaning my ring buffer, since it gets cluttered ever so often
+    uart_flush_input(CONFIG_UART_PORT_NUM);
 }
 
 static void plant_internals_callback(void *arg){
