@@ -1,0 +1,208 @@
+\subsection{Projeto dos ganhos através de LMIs}
+\label{subsec:lmis}
+
+A partir da representação em malha fechada \eqref{eq:sistema_aumentado} obtida na Seção~\ref{subsec:malha}, busca-se determinar os ganhos $K_p$ e $K_i$ que permitam o sistema dinâmico rastrear a referência $r(k)=r(k+1)=r,\forall k$. Para isso, adotou-se o procedimento iterativo de projeto através de desigualdades matriciais lineares (LMIs) apresentado em (\cite{morais_reference}), modificado para a malha de controle adotada neste trabalho. 
+
+\subsubsection{Representação matricial da malha fechada}
+
+Para garantir que o sistema de malha fechada seja capaz de seguir a referência, é necessário descobrir quais são as condições que $A_r(\alpha)$ precisa satisfazer para ser assintóticamente estável. Para isso, torna-se conveniente reescrevêr a representação de estados de modo a separar a dinâmica da planta dos ganhos que serão calculados.
+
+\begin{equation}
+    \widetilde{x}(k+1)=
+    \left(
+        \underbrace{
+            \begin{bmatrix}
+                A(\alpha) & 0 \\
+                -C & I
+            \end{bmatrix}
+        }_{\widetilde{A}(\alpha)}
+        +
+        \underbrace{
+            \begin{bmatrix}
+                B\\0
+            \end{bmatrix}
+        }_{\widetilde{B}}
+        \underbrace{
+            \begin{bmatrix}
+                K_p & K_i
+            \end{bmatrix}
+        }_{\widetilde{K}}
+        \underbrace{
+            \begin{bmatrix}
+                C & 0\\
+                0 & I
+            \end{bmatrix}
+        }_{\widetilde{C}}
+    \right)\widetilde{x}(k)
+    +
+    \begin{bmatrix}
+    0\\
+    I
+    \end{bmatrix}r(k).
+    \label{eq:sistema_aumentado_fatorado}
+\end{equation}
+De forma que
+\begin{equation}
+    A_r(\alpha)=\widetilde A(\alpha)+\widetilde B\widetilde K\widetilde C.
+    \label{eq:lmi_realimentacao_matricial}
+\end{equation}
+
+\subsubsection{Condição de estabilidade e primeira aplicação do lema de Finsler}
+
+Partimos de uma função candidata de Lyapunov para estudar a dinâmica homogênea do sistema aumentado, dada por
+\begin{equation}
+ V(k)=\widetilde x(k)^\top P(\alpha_k)\widetilde x(k),\qquad P(\alpha_k)=P(\alpha_k)^\top\succ0.
+ \label{eq:lmi_lyapunov}
+\end{equation}
+
+\noindent
+Consideremos $P_{k+1}=P_k=P(\alpha_k)=P(\alpha_{k+1})$ e, para simplificar a notação, que $A_r=A_r(\alpha_k)$. Por ser uma função de Lyapunov, espera-se que ela diminua estritamente no tempo, tal que
+\begin{align}
+    \Delta V(k) 
+    &= V(k+1) - V(k) \\
+    &=  \widetilde x(k+1)^\top P_k\widetilde x(k+1) - \widetilde x(k)^\top P_k\widetilde x(k) \\
+    &= \widetilde x(k)^\top ( A_r^\top P_{k}A_r-P_k )\widetilde x(k) < 0.
+    \label{eq:lmi_lyapunov_diferenca}
+\end{align}
+Assim, para garantir $\Delta V(k) < 0$ para todo $\widetilde x(k) \neq 0$, precisa-se que
+\begin{equation}
+    A_r^\top P_{k}A_r-P_k \prec 0
+\end{equation}
+
+\noindent
+Para reescrever~\eqref{eq:lmi_lyapunov_diferenca}, consideraram-se as matrizes
+\begin{equation}
+    \mathcal Q_1=\begin{bmatrix}-P_k&0\\0&P_{k}\end{bmatrix},\qquad
+    \mathcal B_1=\begin{bmatrix}A_r&-I_{n_a}\end{bmatrix},\qquad
+    \mathcal B_1^\perp=\begin{bmatrix}I_{n_a}\\A_r\end{bmatrix},
+    \label{eq:lmi_primeira_restricao}
+\end{equation}
+onde $\mathcal B_1\mathcal B_1^\perp=0$. Dessa forma, a condição de Lyapunov é equivalente a
+\begin{equation}
+ (\mathcal B_1^\perp)^\top\mathcal Q_1\mathcal B_1^\perp\prec0.
+ \label{eq:lmi_condicao_nucleo}
+\end{equation}
+Pelo lema de Finsler, como $\mathcal B_1$ possui posto linha completo, a desigualdade anterior implica que existe uma matriz auxiliar $\mathcal X_1=[F^\top\;G^\top]^\top$ tal que
+\begin{equation}
+    \mathcal Q_1+\mathcal X_1\mathcal B_1+\mathcal B_1^\top\mathcal X_1^\top\prec0.
+    \label{eq:lmi_finsler_1}
+\end{equation}
+Substituindo as variáveis e expandindo os produtos, obtém-se
+\begin{equation}
+ \begin{bmatrix}
+ F A_r+A_r^\top F^\top-P_k & A_r^\top G^\top-F\\
+ G A_r-F^\top & P_{k+1}-G-G^\top
+ \end{bmatrix}\prec0,
+ \label{eq:lmi_finsler_1_expandida}
+\end{equation}
+em que a dependência paramétrica de $F$ e $G$ foi omitida para simplificar a notação. Veja que, como a transformação introduz produtos entre as variáveis auxiliares e os ganhos contidos em $A_r$, ainda não se possui uma LMI, pelo qual irá se aplicar mais uma vez o lema de Finsler.
+
+\subsubsection{Segunda aplicação do lema de Finsler}
+
+Para obter uma representação ampliada da desigualdade~\eqref{eq:lmi_finsler_1_expandida}, definem-se as seguintes matrizes
+\begin{equation}
+    \mathcal Q_2=\begin{bmatrix}
+    -P_k&0&A_r^\top\\
+    0&P_{k}&-I_{n_a}\\
+    A_r&-I_{n_a}&0
+    \end{bmatrix},\qquad
+    \mathcal B_2^\perp=\begin{bmatrix}
+    I_{n_a}&0\\0&I_{n_a}\\F^\top&G^\top
+    \end{bmatrix}.
+    \label{eq:lmi_q2}
+\end{equation}
+Verifica-se por multiplicação direta que $(\mathcal B_2^\perp)^\top\mathcal Q_2\mathcal B_2^\perp$ reproduz a matriz da Equação~\eqref{eq:lmi_finsler_1_expandida}. Como uma matriz que anula $\mathcal B_2^\perp$ é $\mathcal B_2=\begin{bmatrix}-F^\top&-G^\top&I_{n_a}\end{bmatrix}$, sabe-se que $\mathcal B_2\mathcal B_2^\perp=0$ e que pelo lema de Finsler existe matriz auxiliar $X\in\mathbb R^{3n_a\times n_a}$, tal que
+\begin{equation}
+    \boxed{\mathcal Q_2+XY+Y^\top X^\top\prec0,}
+    \qquad
+    X=\begin{bmatrix}X_1\\X_2\\X_3\end{bmatrix},\quad
+    Y=\begin{bmatrix}Y_1&Y_2&Y_3\end{bmatrix}.
+    \label{eq:lmi_final}
+\end{equation}
+Nesta construção, $Y$ corresponde à matriz $\mathcal B_2$. 
+
+\noindent
+Veja que a expressão \eqref{eq:lmi_final} ainda não descreve uma LMI, visto que o produto de variáveis em $XY$ e $Y^\top X^\top$ a torna bilinear. Para contornar essa dificuldade, fixa-se $Y$, de forma que a desigualdade se torne linear nas variáveis $P$, $X$ e nos ganhos do controlador.
+
+\noindent
+Assim, a condição de Lyapunov inicial se torna uma LMI \eqref{eq:lmi_final}, permitindo a aplicação do procedimento iterativo detalhado em seguida para a descoberta dos seus ganhos.
+
+\subsubsection{Síntese dos ganhos do controlador PI}
+
+Seguindo a estratégia proposta no artigo de referência, desenvolveu-se um algoritmo (Algoritmo~\ref{alg:sintese_pi_lmi}) capaz de projetar os ganhos do controlador PI da malha, sob as condições estabelecidas anteriormente. Considerando a variável $Y$ como fixa, seja seu ponto inicial
+\begin{equation}
+ Y^{(0)}=\begin{bmatrix}0&I_{n_a}&-I_{n_a}\end{bmatrix}.
+ \label{eq:lmi_y0}
+\end{equation}
+
+\noindent
+Para tornar o algoritmo mais prático, introduz-se uma relaxação na forma de um parâmetro escalar $\rho$ e substitui-se, na matriz $\mathcal Q_2$, a dinâmica de malha fechada pela expressão relaxada
+\begin{equation}
+ A_\rho(\alpha)= (1-\rho)\widetilde A(\alpha)+\widetilde B\overline K\widetilde C
+ =\begin{bmatrix}
+ (1-\rho)A(\alpha)+B\overline K_pC&B\overline K_i\\
+ -(1-\rho)C&(1-\rho)I_{n_y}
+ \end{bmatrix},
+ \label{eq:matriz_rho}
+\end{equation}
+Considera-se a presença da variável de relaxação implicita  nos ganhos, de forma que $\overline K = (1-\rho)\widetilde K $ representa os ganhos do controlador PI já escalados pelo escalar de relaxação.
+
+A cada iteração $m$, o programa minimiza $\rho$ sujeito a uma restrição de positividade para $P$ e à desigualdade~\eqref{eq:lmi_final}, calculada com $A_\rho$ e $Y$ fixada. A cada iteração, atualiza-se a matrix auxiliar por $Y=X^\top$ e resolve-se novamente o problema. Na implementação testada, utilizou-se $it_{\max}=50$ e $\gamma = 0,001$, interrompendo-se o processo antecipadamente quando se obtém $\rho<\gamma$. Caso numa determinada iteração $\rho_m<\gamma$, os ganhos utilizados no controlador são recuperados por
+\begin{equation}
+ \boxed{K_p=\frac{\overline K_p}{1-\rho_m},\qquad
+ K_i=\frac{\overline K_i}{1-\rho_m}.}
+ \label{eq:normalizacao_ganhos}
+\end{equation}
+
+\begin{algorithm}[htbp]
+    \caption{Projeto iterativo do controlador PI por meio de LMIs}
+    \label{alg:sintese_pi_lmi}
+    \begin{algorithmic}[1]
+        \Require $A,B,C,\gamma$ e $it_{\max}$,
+        \Ensure $K_p$ e $K_i$,
+
+        \State Construir $A(\alpha)$ e $A_r(\alpha)$
+        \State Definir as variáveis $P(\alpha)$, $X(\alpha)$, $K_p(\alpha)$, $K_i(\alpha)$, p
+        \State $Y \gets Y_0 = \begin{bmatrix}0&I_{n_a}&-I_{n_a}\end{bmatrix}$
+
+        \While{$m<it_{\max}$}
+            \State $m\gets m+1$
+            \State Construir $A_p(\alpha)=(1-p)\widetilde A(\alpha)+\widetilde B\overline K\widetilde C$
+            \State Construir
+                $Q(\alpha)=
+                \begin{bmatrix}
+                -P(\alpha)&0&A_p(\alpha)^\top\\
+                0&P(\alpha)&-I_{n_a}\\
+                A_p(\alpha)&-I_{n_a}&0
+                \end{bmatrix}$
+
+            \State Resolver
+            \Statex \hspace{\algorithmicindent}
+            $\displaystyle\min \quad p$
+            \Statex \hspace{\algorithmicindent}
+            sujeito a
+            \Statex \hspace{\algorithmicindent}
+            $ \qquad \qquad P(\alpha)\succeq0$
+            \Statex \hspace{\algorithmicindent}
+            $ \qquad \qquad Q(\alpha)+XY
+            +Y^\top X^\top\preceq0$
+
+            \State $Y\gets X^\top$
+
+            \If{$p<\gamma$}
+                \State \textbf{exit}
+            \EndIf
+        \EndWhile
+
+        \If{$p<\gamma$}
+            \State $K_p\gets\overline K_p/(1-p)$
+            \State $K_i\gets\overline K_i/(1-p)$
+        \EndIf
+
+    \end{algorithmic}
+\end{algorithm}
+
+\noindent
+Os ganhos obtidos pela síntese são apresentados e discutidos na Seção~\ref{subsec:resultados_sintese}.
+
+\newpage

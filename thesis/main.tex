@@ -1,0 +1,104 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{times}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs,array}
+\usepackage{csquotes}
+\usepackage[backend=biber,style=authoryear,sorting=nyt,maxcitenames=2,maxbibnames=10]{biblatex}
+\addbibresource{referencias_tcc.bib}
+\usepackage{url}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\definecolor{navyblue}{RGB}{31,69,111}
+\definecolor{lightblue}{RGB}{236,244,250}
+\definecolor{warmgray}{RGB}{246,247,249}
+\usepackage{tabularx}
+\usepackage{xcolor}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\algrenewcommand\algorithmicrequire{\textbf{Input:}}
+\algrenewcommand\algorithmicensure{\textbf{Output:}}
+
+\geometry{a4paper,left=3cm,right=2cm,top=3cm,bottom=2cm}
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\onehalfspacing
+\captionsetup{font=small,labelfont=bf}
+\graphicspath{{imagens/}}
+
+\begin{document}
+\hypersetup{pageanchor=false}
+\pagenumbering{gobble}
+
+\begin{titlepage}
+\begin{center}
+{\large UNIVERSIDADE ESTADUAL DE CAMPINAS}\\[0.25cm]
+{\large FACULDADE DE ENGENHARIA ELÉTRICA E DE COMPUTAÇÃO}
+\vfill
+{\large MELVIN GUSTAVO MARADIAGA ELVIR}
+\vfill
+{\Large\bfseries Controle e rastreamento de sistemas farmacocinéticos\par}
+\vspace{0.7cm}
+
+% Falta inserir link do video
+
+\vfill
+Campinas\\2026
+\end{center}
+\end{titlepage}
+
+
+\begin{titlepage}
+\begin{center}
+{\large UNIVERSIDADE ESTADUAL DE CAMPINAS}\\[0.25cm]
+{\large FACULDADE DE ENGENHARIA ELÉTRICA E DE COMPUTAÇÃO}
+\vfill
+{\large MELVIN GUSTAVO MARADIAGA ELVIR}
+\vfill
+{\Large\bfseries Controle e rastreamento de sistemas farmacocinéticos\par}
+\vspace{1.5cm}
+\end{center}
+\hfill\begin{minipage}{0.55\textwidth}
+Trabalho apresentado como requisito para conclusão do curso de Engenharia Elétrica da Universidade Estadual de Campinas, sob orientação da Profa. Dra. Cecília de Freitas Morais.
+\end{minipage}
+\vfill
+\begin{center}Campinas\\2026\end{center}
+\end{titlepage}
+
+% FALTA DEDICATORIA E AGRADECIMENTOS
+
+\input{sections/resumo_abstract.tex}
+
+\cleardoublepage
+\pagenumbering{roman}
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+\hypersetup{pageanchor=true}
+
+\input{sections/introducao.tex} 
+\input{sections/objetivos.tex}
+\input{sections/metodologia.tex}
+
+% Esta seção possui diversas subseções. Separar elas também.
+\input{sections/desenvolvimento.tex}
+
+\input{sections/resultados_discussao.tex}
+\input{sections/conclusao.tex}
+
+\printbibliography[title={Referências}]
+
+\end{document}

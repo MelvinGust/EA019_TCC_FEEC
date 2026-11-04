@@ -1,0 +1,751 @@
+[
+    {
+        "id": "35ad271e",
+        "type": "tab",
+        "label": "ESP32 Control System",
+        "disabled": false,
+        "info": "FlowFuse Dashboard flow for ESP32 controller and plant over MQTT."
+    },
+    {
+        "id": "4bbe233f",
+        "type": "mqtt in",
+        "z": "35ad271e",
+        "name": "Controller state: ctrl/state",
+        "topic": "ctrl/state",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "541a4b79",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 120,
+        "wires": [
+            [
+                "8f69359b"
+            ]
+        ]
+    },
+    {
+        "id": "92b176de",
+        "type": "mqtt in",
+        "z": "35ad271e",
+        "name": "Plant state: plant/state",
+        "topic": "plant/state",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "541a4b79",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 420,
+        "wires": [
+            [
+                "65ba38e3"
+            ]
+        ]
+    },
+    {
+        "id": "3c36a4bb",
+        "type": "ui-number-input",
+        "z": "35ad271e",
+        "group": "1387a5f8",
+        "name": "Reference input",
+        "label": "Reference (input/ref)",
+        "order": 1,
+        "width": "6",
+        "height": "1",
+        "topic": "payload",
+        "topicType": "msg",
+        "min": 0,
+        "max": 20,
+        "step": 0.1,
+        "tooltip": "Send reference to controller",
+        "delay": "100",
+        "passthru": false,
+        "sendOnDelay": true,
+        "sendOnBlur": false,
+        "sendOnEnter": true,
+        "className": "",
+        "clearable": false,
+        "icon": "send",
+        "iconPosition": "left",
+        "iconInnerPosition": "inside",
+        "spinner": true,
+        "x": 290,
+        "y": 620,
+        "wires": [
+            [
+                "e5682f81"
+            ]
+        ]
+    },
+    {
+        "id": "4201910c",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "1387a5f8",
+        "order": 2,
+        "width": "3",
+        "height": "1",
+        "name": "Kp display",
+        "label": "Kₚ",
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 390,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "011a0e1b",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "1387a5f8",
+        "order": 3,
+        "width": "3",
+        "height": "1",
+        "name": "Ki display",
+        "label": "Kᵢ",
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 390,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "eab89c7e",
+        "type": "ui-chart",
+        "z": "35ad271e",
+        "group": "1387a5f8",
+        "name": "Controller output u",
+        "label": "Controller Output u",
+        "order": 4,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "Time",
+        "xAxisProperty": "timestamp",
+        "xAxisPropertyType": "msg",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "u",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "",
+        "ymax": "",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "circle",
+        "pointRadius": 2,
+        "showLegend": true,
+        "removeOlder": "10",
+        "removeOlderUnit": "1",
+        "removeOlderPoints": "",
+        "colors": [
+            "#1976d2",
+            "#ef5350",
+            "#66bb6a",
+            "#ffa726",
+            "#ab47bc",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e0e0e0"
+        ],
+        "gridColorDefault": true,
+        "width": "12",
+        "height": "6",
+        "className": "",
+        "interpolation": "linear",
+        "x": 390,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "444ea1a2",
+        "type": "ui-chart",
+        "z": "35ad271e",
+        "group": "f2cbbd43",
+        "name": "Reference and plant output",
+        "label": "Reference vs Plant Output",
+        "order": 1,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "Time",
+        "xAxisProperty": "timestamp",
+        "xAxisPropertyType": "msg",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "Reference / y",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "20",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "circle",
+        "pointRadius": 2,
+        "showLegend": true,
+        "removeOlder": "10",
+        "removeOlderUnit": "1",
+        "removeOlderPoints": "",
+        "colors": [
+            "#1976d2",
+            "#ef5350",
+            "#66bb6a",
+            "#ffa726",
+            "#ab47bc",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e0e0e0"
+        ],
+        "gridColorDefault": true,
+        "width": "12",
+        "height": "6",
+        "className": "",
+        "interpolation": "linear",
+        "x": 780,
+        "y": 460,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d9b1c769",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "983cc445",
+        "order": 1,
+        "width": "1",
+        "height": "1",
+        "name": "x_b display",
+        "label": "x_b",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 700,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "47bdedbc",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "983cc445",
+        "order": 2,
+        "width": "1",
+        "height": "1",
+        "name": "x_m display",
+        "label": "x_m",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 700,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "981195b3",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "983cc445",
+        "order": 3,
+        "width": "1",
+        "height": "1",
+        "name": "x_o display",
+        "label": "x_o",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 700,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "36b2c4d2",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "983cc445",
+        "order": 4,
+        "width": "1",
+        "height": "1",
+        "name": "x_i display",
+        "label": "x_i",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 700,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "8f69359b",
+        "type": "function",
+        "z": "35ad271e",
+        "name": "Parse Controller State",
+        "func": "let d = msg.payload;\nif (typeof d === \"string\") { try { d = JSON.parse(d); } catch (e) { node.warn(\"Invalid JSON on ctrl/state\"); return null; } }\nif (!d || ![\"K_p\", \"K_i\", \"u\", \"x_i\"].every(k => typeof d[k] === \"number\" && Number.isFinite(d[k]))) { node.warn(\"Unexpected ctrl/state payload\"); return null; }\nconst ts = Date.now();\nreturn [\n  {topic: \"Controller Output\", payload: d.u, timestamp: ts},\n  {payload: d.K_p},\n  {payload: d.K_i},\n  {payload: d.x_i}\n];",
+        "outputs": 4,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 120,
+        "wires": [
+            [
+                "eab89c7e"
+            ],
+            [
+                "4201910c"
+            ],
+            [
+                "011a0e1b"
+            ],
+            [
+                "36b2c4d2"
+            ]
+        ]
+    },
+    {
+        "id": "65ba38e3",
+        "type": "function",
+        "z": "35ad271e",
+        "name": "Parse Plant State",
+        "func": "let d = msg.payload;\nif (typeof d === \"string\") { try { d = JSON.parse(d); } catch (e) { node.warn(\"Invalid JSON on plant/state\"); return null; } }\nif (!d || ![\"y\", \"x_b\", \"x_m\", \"x_o\"].every(k => typeof d[k] === \"number\" && Number.isFinite(d[k]))) { node.warn(\"Unexpected plant/state payload\"); return null; }\nreturn [\n  {topic: \"Plant Output\", payload: d.y, timestamp: Date.now()},\n  {payload: d.x_b},\n  {payload: d.x_m},\n  {payload: d.x_o}\n];",
+        "outputs": 4,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 420,
+        "wires": [
+            [
+                "444ea1a2"
+            ],
+            [
+                "d9b1c769"
+            ],
+            [
+                "47bdedbc"
+            ],
+            [
+                "981195b3"
+            ]
+        ]
+    },
+    {
+        "id": "e5682f81",
+        "type": "function",
+        "z": "35ad271e",
+        "name": "Publish and remember reference",
+        "func": "const reference = Number(msg.payload);\nif (!Number.isFinite(reference)) { node.warn(\"Reference must be a finite number\"); return null; }\nflow.set(\"ctrl_ref\", reference);\nreturn [\n  {topic: \"ctrl/ref\", payload: String(reference)},\n];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 620,
+        "wires": [
+            [
+                "54d71ff6"
+            ]
+        ]
+    },
+    {
+        "id": "54d71ff6",
+        "type": "mqtt out",
+        "z": "35ad271e",
+        "name": "Publish input/ref",
+        "topic": "input/ref",
+        "qos": "",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "541a4b79",
+        "x": 820,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "bb88cb9305af21eb",
+        "type": "mqtt in",
+        "z": "35ad271e",
+        "name": "Plant internals: plant/internals",
+        "topic": "plant/internals",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "541a4b79",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 280,
+        "y": 720,
+        "wires": [
+            [
+                "81bed67390197d03"
+            ]
+        ]
+    },
+    {
+        "id": "81bed67390197d03",
+        "type": "function",
+        "z": "35ad271e",
+        "name": "Parse Plant Internals",
+        "func": "let d = msg.payload;\nif (typeof d === \"string\") { try { d = JSON.parse(d); } catch (e) { node.warn(\"Invalid JSON on plant/internals\"); return null; } }\nif (!d || ![\"y_ob\", \"u_m\", \"u_o\"].every(k => typeof d[k] === \"number\" && Number.isFinite(d[k]))) { node.warn(\"Unexpected plant/internals payload\"); return null; }\nreturn [\n  {payload: d.y_ob},\n  {payload: d.u_m},\n  {payload: d.u_o}\n];",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 720,
+        "wires": [
+            [
+                "6f6abe42a6b287ed"
+            ],
+            [
+                "2a19b595db4338af"
+            ],
+            [
+                "481b763dd6b5c059"
+            ]
+        ]
+    },
+    {
+        "id": "6f6abe42a6b287ed",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "fc875953fa71be7d",
+        "order": 1,
+        "width": "1",
+        "height": "1",
+        "name": "y_ob display",
+        "label": "y_ob",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 830,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "2a19b595db4338af",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "fc875953fa71be7d",
+        "order": 2,
+        "width": "1",
+        "height": "1",
+        "name": "u_m display",
+        "label": "u_m",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 830,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "481b763dd6b5c059",
+        "type": "ui-text",
+        "z": "35ad271e",
+        "group": "fc875953fa71be7d",
+        "order": 3,
+        "width": "1",
+        "height": "1",
+        "name": "u_o display",
+        "label": "u_o",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 830,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "f3bb88f0c62cc326",
+        "type": "function",
+        "z": "35ad271e",
+        "name": "Update reference for graph",
+        "func": "const reference = flow.get(\"ctrl_ref\");\n\nif (reference === undefined) {\n    return null;\n}\n\nmsg.topic = \"Reference\";\nmsg.payload = reference;\nmsg.timestamp = Date.now();\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 520,
+        "wires": [
+            [
+                "444ea1a2"
+            ]
+        ]
+    },
+    {
+        "id": "7aa1e3a594bce137",
+        "type": "inject",
+        "z": "35ad271e",
+        "name": "Reference Update Trigger",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "0.1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 520,
+        "wires": [
+            [
+                "f3bb88f0c62cc326"
+            ]
+        ]
+    },
+    {
+        "id": "541a4b79",
+        "type": "mqtt-broker",
+        "name": "Mosquitto Broker ESP32",
+        "broker": "127.0.0.1",
+        "port": "1883",
+        "clientid": "nodered-esp32-dashboard",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "1387a5f8",
+        "type": "ui-group",
+        "name": "Controller",
+        "page": "192097cb",
+        "width": "6",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "f2cbbd43",
+        "type": "ui-group",
+        "name": "Plant Response",
+        "page": "192097cb",
+        "width": "6",
+        "height": "1",
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "983cc445",
+        "type": "ui-group",
+        "name": "Expanded State Vector",
+        "page": "192097cb",
+        "width": "2",
+        "height": "4",
+        "order": 3,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "fc875953fa71be7d",
+        "type": "ui-group",
+        "name": "Plant Internals",
+        "page": "192097cb",
+        "width": "2",
+        "height": "3",
+        "order": 4,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "true",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "192097cb",
+        "type": "ui-page",
+        "name": "Control System",
+        "ui": "64fb0924",
+        "path": "/control",
+        "icon": "dashboard",
+        "layout": "grid",
+        "theme": "39f22e53",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": 0,
+                "cols": 3
+            },
+            {
+                "name": "Tablet",
+                "px": 576,
+                "cols": 6
+            },
+            {
+                "name": "Desktop",
+                "px": 768,
+                "cols": 12
+            }
+        ],
+        "order": 1
+    },
+    {
+        "id": "64fb0924",
+        "type": "ui-base",
+        "name": "ESP32 Dashboard",
+        "path": "/dashboard",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "navigationStyle": "default"
+    },
+    {
+        "id": "39f22e53",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#1976d2",
+            "bgPage": "#f4f6f8",
+            "groupBg": "#ffffff",
+            "groupOutline": "#d9dfe5"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "72d74ba2a563cdbe",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@flowfuse/node-red-dashboard": "1.33.0"
+        }
+    }
+]

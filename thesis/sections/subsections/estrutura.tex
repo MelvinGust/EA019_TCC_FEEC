@@ -1,0 +1,92 @@
+\subsection{Estrutura de controle}
+\label{subsec:malha}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        >=Latex,
+        font=\small,
+        block/.style={draw, thick, minimum height=9mm, align=center, fill=white},
+        sum/.style={draw, circle, thick, inner sep=0pt, minimum size=7mm},
+        wire/.style={->, thick},
+        tap/.style={circle,fill=black,inner sep=1.25pt}
+    ]
+    % Sinais de entrada, erros e integrador discreto
+    \node (ref) at (0,0) {$r(k)$};
+    \node[sum] (s1) at (1.55,0) {};
+    \node[sum] (s2) at (3.20,0) {};
+    \node[block,minimum width=1.15cm] (delay) at (4.5,0) {$z^{-1}$};
+    \node[block,minimum width=1.00cm] (ki) at (6.4,0) {$K_i$};
+    \node[sum] (s3) at (7.75,0) {};
+    \node[block,minimum width=3.6cm,minimum height=1.28cm] (plant) at (11.25,0) {\shortstack{Planta farmacocinética\\$x^{+}=Ax+Bu$\\$y=Cx$}};
+    \node (out) at (14.8,0) {$y(k)$};
+    
+    \draw[wire] (ref) -- (s1);
+    \draw[wire] (s1) -- node[above] {$e(k)$} (s2);
+    \draw[wire] (s2) -- (delay);
+    \draw[wire] (delay) -- (ki);
+    \draw[wire] (ki) -- (s3);
+    \draw[wire] (s3) -- node[above] {$u(k)$} (plant);
+    \draw[wire] (plant) -- (out);
+    
+    % Sinais de soma
+    \node at ($(s1)+(-0.15,0.0)$) {\scriptsize$+$};
+    \node at ($(s1)+(0,-0.19)$) {\scriptsize$-$};
+    \node at ($(s2)+(0.0,0.18)$) {\scriptsize$+$};
+    \node at ($(s2)+(-0.15,0.0)$) {\scriptsize$+$};
+    \node at ($(s3)+(-0.15,0.0)$) {\scriptsize$+$};
+    \node at ($(s3)+(0,0.18)$) {\scriptsize$+$};
+    
+    % Realimentação do acumulador: saída de z^-1 volta ao somador 2
+    \coordinate (accTap) at ($(delay.east)+(0.28,0)$);
+    \node[tap] at (accTap) {};
+    \draw[wire] (accTap) |- (3.2,1.25) -- (s2.north);
+    
+    % Realimentação proporcional pela saída medida
+    \coordinate (yTap) at (13.75, 0);
+    \node[tap] at (yTap) {};
+    \node[block,minimum width=1.1cm] (kp) at (10.8,1.65) {$K_p$};
+    \draw[wire] (yTap) |- (kp.east);
+    \draw[wire] (kp.west) -- (7.75,1.65) -- (s3.north);
+    
+    % Realimentação negativa para o erro
+    \draw[wire] (yTap) |- (1.55,-1.35) -- (s1.south);
+    \end{tikzpicture}
+    \caption{Malha de controle PI discreta para o modelo farmacocinético, sem os blocos de exportação de dados do Simulink.}
+    \label{fig:malha_controle}
+\end{figure}
+
+De maneira geral, consideremos que $x(k)\in\mathbb{R}^{n_x}$, $u(k)\in\mathbb{R}^{n_u}$ e $y(k)\in\mathbb{R}^{n_y}$. Para as matrizes na representação de estados \eqref{eq:representacao_em_estados_v1} consideremos que $A(\alpha)\in\mathbb{R}^{n_x\times n_x}$, $B\in\mathbb{R}^{n_x\times n_u}$ e $C\in\mathbb{R}^{n_y\times n_x}$. Com o objetivo de rastrear uma referência de concentração $r(k)\in\mathbb{R}^{n_y}$, foi adotada uma malha fechada com ação proporcional e integral (Figura~\ref{fig:malha_controle}) cuja lei de controle é descrita por
+\begin{equation}
+ u(k)=K_p y(k)+K_i x_i(k).
+ \label{eq:lei_controle}
+\end{equation}
+$K_p$ e $K_i$ são os ganhos a serem determinados pelo procedimento de projeto. O estado integral $x_i(k)$ é usado para eliminar o erro em regime permanente, e é definido por
+\begin{equation}
+ x_i(k+1)=x_i(k)+e(k)=x_i(k)+r(k)-y(k).
+ \label{eq:integrador}
+\end{equation}
+
+\noindent
+As duas variáveis de estado no tempo futuro podem ser obtidas substituindo a equação \eqref{eq:lei_controle} em \eqref{eq:planta_estados}, e substituindo a equação \eqref{eq:integrador}  em \eqref{eq:planta_saida}
+\begin{subequations}\label{eq:planta_fechada_completa}
+    \begin{align}
+        x(k+1)=\bigl(A(\alpha)+BK_pC\bigr)x(k)+BK_i x_i(k),
+        \label{eq:planta_fechada}\\
+        x_i(k+1)=-Cx(k)+x_i(k)+r(k).
+        \label{eq:integrador_fechado}
+    \end{align}
+\end{subequations}
+
+Seja o vetor de estados aumentado $\widetilde{x}(k)=[x(k)^\top\;x_i(k)]^\top\in\mathbb{R}^{n_a}$ com $n_a=n_x+n_y$. Sob este novo vetor de estados, a dinâmica do sistema em malha fechada pode ser representada de maneira matricial, por
+\begin{equation}
+ \widetilde{x}(k+1)=
+ \underbrace{\begin{bmatrix}
+ A(\alpha)+BK_pC & BK_i\\
+ -C & I_{n_y}
+ \end{bmatrix}}_{A_r(\alpha)}\widetilde{x}(k)
+ +\begin{bmatrix}0_{n_x\times n_y}\\I_{n_y}\end{bmatrix}r(k).
+ \label{eq:sistema_aumentado}
+\end{equation}
+\noindent
+Deste processo, obtem-se a matriz dinâmica do sistema aumentado $A_r(\alpha)\in\mathbb{R}^{n_a\times n_a}$.

@@ -1,0 +1,11 @@
+\section{Metodologia}
+\label{sec:metodologia}
+
+O projeto foi desenvolvido em três etapas diferentes. Inicialmente, selecionou-se o modelo de absorção de fármacos a ser controlado, para depois prosseguir com o estudo de técnicas de rastreamento robusto na literatura, em especial aquelas através de LMIs. Com base nessa investigação, estabeleceu-se a malha de controle utilizada neste trabalho e tanto sua representação em espaço de estados como suas restrições de LMI foram deduzidas.
+
+Na segunda etapa, um procedimento iterativo baseado na estratégia descrita em (\cite{morais_reference}) foi adotado. 
+As matrizes de estado e LMIs deduzidas na etapa anterior foram implementadas em Matlab, e por meio das ferramentas YALMIP (\cite{lofberg2004yalmip}), ROLMIP (\cite{agulhari2019rolmip}) e o solucionador SeDuMi (\cite{sturm1999sedumi}), os ganhos do controlador foram projetados. Em seguida, o sistema em malha fechada foi reproduzido no Simulink, e o comportamento temporal da saída foi estudado em oito combinações extremas dos três parâmetros incertos do modelo.
+
+A última etapa consistiu na implementação embarcada. Para isso, foram utilizados dois microcontroladores ESP32: um responsável pelo cálculo da ação de controle e outro pela atualização do modelo matemático da planta. A comunicação entre dispositivos foi realizada por UART, enquanto a comunicação MQTT foi empregada para o acompanhamento das variáveis de estado, o acompanhamento da saída, e o ajuste da referência por uma interface de supervisão.
+
+\newpage

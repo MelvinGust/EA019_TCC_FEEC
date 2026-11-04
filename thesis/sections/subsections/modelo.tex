@@ -1,0 +1,44 @@
+\subsection{Modelo farmacocinético}
+\label{subsec:modelo}
+
+O modelo farmacocinético adotado \eqref{eq:modelo_farmacocinetico} considera a concentração de um fármaco em três compartimentos: músculo, sangue e órgão. O medicamento é aplicado no músculo, de onde ele é distribuído aos demais compartimentos através de taxas de transferência e de absorção. O modelo é descrito em tempo discreto em (\cite{oliveira2024preliminary}).
+\begin{subequations}\label{eq:modelo_farmacocinetico}
+    \begin{align}
+        m(k+1) &= (1-\gamma_{mb}-\mu_m)m(k)+\gamma_{bm}b(k)+D_m u(k),\label{eq:musculo}\\
+        b(k+1) &= \gamma_{mb}m(k)+(1-\gamma_{bo}-\gamma_{bm}-\mu_b)b(k)+\gamma_{ob}o(k),\label{eq:sangue}\\
+        o(k+1) &= \gamma_{bo}b(k)+(1-\gamma_{ob}-\mu_o)o(k),\label{eq:orgao}
+    \end{align}
+\end{subequations}
+
+\noindent
+em que $m(k)$, $b(k)$ e $o(k)$ representam as concentrações em cada compartimento; $\gamma_{ij}$ corresponde à taxa de transferência do compartimento $i$ para o compartimento $j$; $\mu_i$ representa a taxa de absorção associada ao compartimento $i$; $D_m$ é o fator de administração do medicamento; e $u(k)$ é a ação de controle.
+
+Seja o vetor de estados $x(k)=[m(k)\;b(k)\;o(k)]^\top$. O modelo pode ser escrito em espaço de estados através de
+\begin{subequations}\label{eq:representacao_em_estados_v1}
+    \begin{align}
+    x(k+1)&=A(\alpha)x(k)+Bu(k),\label{eq:planta_estados}\\
+    y(k)&=Cx(k),\label{eq:planta_saida}
+    \end{align}
+\end{subequations}
+com a matriz de estados $A$, de entrada $B$ e de saída $C$ dadas por
+\begin{equation}
+    \begin{aligned} A(\alpha)&=\begin{bmatrix}
+    1-\gamma_{mb}-\mu_m(\alpha) & \gamma_{bm} & 0\\
+    \gamma_{mb} & 1-\gamma_{bo}-\gamma_{bm}-\mu_b & \gamma_{ob}(\alpha)\\
+    0 & \gamma_{bo} & 1-\gamma_{ob}(\alpha)-\mu_o(\alpha)
+    \end{bmatrix},\\[0.4em]
+    B&=\begin{bmatrix}D_m\\0\\0\end{bmatrix},\qquad
+    C=\begin{bmatrix}0&0&1\end{bmatrix}.\end{aligned}
+    \label{eq:matrizes_planta}
+\end{equation}
+
+Para representar as incertezas da planta, foram considerados três parâmetros variáveis: $\gamma_{ob}$, $\mu_m$ e $\mu_o$. Como cada um dos três parâmetros incertos pode assumir dois valores extremos, obtêm-se $2^3=8$ vértices para o politopo de matrizes da planta. Logo, o conjunto de modelos possíveis considerados no projeto pode ser representado pela combinação convexa
+\begin{equation}
+    A(\alpha)=\sum_{i=1}^{8}\alpha_i A_i,\qquad
+    \alpha_i\geq 0,\qquad\sum_{i=1}^{8}\alpha_i=1,
+    \label{eq:politopo}
+\end{equation}
+em que $A_i$ são as matrizes correspondentes às oito combinações dos valores extremos dos parâmetros. As faixas de variação desses parâmetros são apresentadas na Tabela~\ref{tab:parametros_planta} e os vertices na Tabela~\ref{tab:vertices}, ambas na Seção \ref{subsec:resultados_sintese}.
+
+\noindent
+Para prosseguir na análise do modelo, consideremos as dimensões para cada elemento como sendo $n_x=3$, $n_y=n_u=1$ e $n_a=n_x+n_y=4$.
